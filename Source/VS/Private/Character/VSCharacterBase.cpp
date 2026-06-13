@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/VSCharacterBase.h"
+#include "Character/VSCharacterBase.h"
 
 // Sets default values
 AVSCharacterBase::AVSCharacterBase()
