@@ -42,7 +42,9 @@ PBGet/*-*
 # Visual Studio 2015/2017 cache/options directory
 /.vs
 /.vscode
-/*.code-workspace
+.vs
+.idea/
+.idea/*.code-workspace
 
 # User-specific files
 *.suo
