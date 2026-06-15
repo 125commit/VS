@@ -16,9 +16,15 @@ void UVSEnemyManager::Initialize(FSubsystemCollectionBase& Collection)
 //退出关卡时清空
 void UVSEnemyManager::Deinitialize()
 {
+	TArray<AActor*> EnemiesToReturn = MoveTemp(ActiveEnemies);
+	
 	for (AActor* Actor : ActiveEnemies)
 	{
-		ReturnEnemiesToPool(Actor);
+		if (EnemyPool && Actor)
+		{
+			EnemyPool->ReturnActorToPool(Actor);
+		}
+		
 	}
 	
 	if (EnemyPool)
@@ -51,12 +57,5 @@ void UVSEnemyManager::ReturnEnemiesToPool(AActor* Enemy)
 
 int32 UVSEnemyManager::GetActiveNormalEnemiesCount()
 {
-	int32 Count = 0;
-	for (AActor* EnemyActor : ActiveEnemies)
-	{
-		Count++;
-	}
-	
-	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("Enemy Num: %d"), Count));
-	return Count;
+	return ActiveEnemies.Num();
 }
