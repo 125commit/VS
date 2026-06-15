@@ -6,31 +6,37 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "VSEnemyManager.generated.h"
 
+class AVSEnemy;
 class UVSObjectPool;
-/**
- * 
- */
+
 UCLASS()
-class VS_API UVSEnemyManager : public UWorldSubsystem
+class VS_API UVSEnemyManager : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
-	
+
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-	
+
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
+	virtual bool IsTickableInEditor() const override { return false; }
+
 	AActor* SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, const FVector& Location);
 	void ReturnEnemiesToPool(AActor* Enemy);
-	
-	int32 GetActiveNormalEnemiesCount();
-	
+
+	int32 GetActiveNormalEnemiesCount() const;
+
 	UPROPERTY()
 	TArray<AActor*> ActiveEnemies;
-	
+
 private:
+	void ProcessEnemyLogic(float DeltaTime);
+	void MoveToTarget(AVSEnemy* Enemy, const FVector& PlayerLoc, float DeltaTime);
+
 	UPROPERTY()
 	TObjectPtr<UVSObjectPool> EnemyPool;
-	
-	
 
+	const float AttackRadius = 100.f;
+	float AttackRadiusSq = 0.f;
 };

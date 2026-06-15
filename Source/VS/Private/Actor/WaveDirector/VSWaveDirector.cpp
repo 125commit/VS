@@ -5,9 +5,9 @@
 
 #include "Character/VSEnemy.h"
 #include "Subsystem/VSEnemyManager.h"
+#include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
-
 
 AVSWaveDirector::AVSWaveDirector()
 {
