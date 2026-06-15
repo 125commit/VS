@@ -5,57 +5,128 @@
 
 #include "Pool/VSObjectPool.h"
 #include "Character/VSEnemy.h"
+#include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+
 
 void UVSEnemyManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	
 	EnemyPool = NewObject<UVSObjectPool>(this);
+	AttackRadiusSq = AttackRadius * AttackRadius;
 }
 
-//退出关卡时清空
 void UVSEnemyManager::Deinitialize()
 {
 	TArray<AActor*> EnemiesToReturn = MoveTemp(ActiveEnemies);
-	
-	for (AActor* Actor : ActiveEnemies)
+
+	for (AActor* Actor : EnemiesToReturn)
 	{
 		if (EnemyPool && Actor)
 		{
 			EnemyPool->ReturnActorToPool(Actor);
 		}
-		
 	}
-	
+
 	if (EnemyPool)
 	{
 		EnemyPool->ClearPool();
 	}
 	ActiveEnemies.Empty();
-	
+
 	Super::Deinitialize();
+}
+
+TStatId UVSEnemyManager::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UVSEnemyManager, STATGROUP_Tickables);
+}
+
+void UVSEnemyManager::Tick(float DeltaTime)
+{
+	ProcessEnemyLogic(DeltaTime);
 }
 
 AActor* UVSEnemyManager::SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, const FVector& Location)
 {
 	if (!EnemyPool) return nullptr;
-	
-	AActor* NewEnemy =  EnemyPool->GetActorFromPool(GetWorld(), EnemyClass, Location, FRotator::ZeroRotator);
-	if (NewEnemy && !ActiveEnemies.Contains(NewEnemy))
+
+	AActor* NewEnemy = EnemyPool->GetActorFromPool(GetWorld(), EnemyClass, Location, FRotator::ZeroRotator);
+	if (!NewEnemy || ActiveEnemies.Contains(NewEnemy)) return NewEnemy;
+
+	if (Cast<AVSEnemy>(NewEnemy))
 	{
 		ActiveEnemies.Add(NewEnemy);
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("EnemyClass [%s] must inherit from AVSEnemy, otherwise movement will not work."),
+			*GetNameSafe(EnemyClass));
+	}
+
 	return NewEnemy;
 }
 
 void UVSEnemyManager::ReturnEnemiesToPool(AActor* Enemy)
 {
 	if (!EnemyPool || !Enemy) return;
+
+	if (AVSEnemy* VSEnemy = Cast<AVSEnemy>(Enemy))
+	{
+		VSEnemy->OnRecycled();
+	}
+
 	ActiveEnemies.RemoveSingleSwap(Enemy);
 	EnemyPool->ReturnActorToPool(Enemy);
 }
 
-int32 UVSEnemyManager::GetActiveNormalEnemiesCount()
+int32 UVSEnemyManager::GetActiveNormalEnemiesCount() const
 {
 	return ActiveEnemies.Num();
+}
+
+void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
+{
+	if (ActiveEnemies.Num() == 0) return;
+
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	if (!Player) return;
+
+	const FVector PlayerLoc = Player->GetActorLocation();
+
+	for (AActor* EnemyActor : ActiveEnemies)
+	{
+		AVSEnemy* Enemy = Cast<AVSEnemy>(EnemyActor);
+		if (!Enemy) continue;
+
+		const float DistanceSq = FVector::DistSquared(PlayerLoc, Enemy->GetActorLocation());
+
+		if (DistanceSq <= AttackRadiusSq)
+		{
+			Enemy->SetVisualSpeed(0.f);
+			//TODO:造成伤害
+		}
+		else
+		{
+			MoveToTarget(Enemy, PlayerLoc, DeltaTime);
+		}
+	}
+}
+
+void UVSEnemyManager::MoveToTarget(AVSEnemy* Enemy, const FVector& PlayerLoc, float DeltaTime)
+{
+	const FVector LastLoc = Enemy->GetActorLocation();
+
+	FVector Direction = PlayerLoc - LastLoc;
+	Direction.Z = 0.f;
+	if (Direction.IsNearlyZero()) return;
+
+	Direction.Normalize();
+	const float Speed = Enemy->MoveSpeed;
+
+	const FVector NewLoc = LastLoc + Direction * Speed * DeltaTime;
+	Enemy->SetActorLocation(NewLoc, true);
+	Enemy->SetActorRotation(FRotator(0.f, Direction.Rotation().Yaw, 0.f));
+	
+	Enemy->SetVisualSpeed(Speed);
 }

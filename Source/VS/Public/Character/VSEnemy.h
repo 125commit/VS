@@ -18,12 +18,22 @@ public:
 	AVSEnemy();
 	
 	void SetIsElite(bool bIsInElite);
-	
 	FORCEINLINE bool GetIsElite() {return bIsElite;}
 	
+	void SetVisualSpeed(float Speed);
+	
 	void OnRecycled();
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	float VisualSpeed = 200.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
+	float MoveSpeed = 200.f;
+
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	bool bIsElite = false;
+
+	
 };
