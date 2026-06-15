@@ -6,6 +6,16 @@
 void UVSObjectPool::ClearPool()
 {
 	PoolMap.Empty();
+	for (auto Pair : PoolMap)
+	{
+		for (AActor* Actor: Pair.Value.UnusedActors)
+		{
+			if (IsValid(Actor))
+			{
+				Actor->Destroy();
+			}
+		}
+	}
 }
 
 AActor* UVSObjectPool::GetActorFromPool(UWorld* World, const TSubclassOf<AActor> ActorClass, const FVector& Location,
@@ -18,7 +28,7 @@ AActor* UVSObjectPool::GetActorFromPool(UWorld* World, const TSubclassOf<AActor>
 		FCustomActorPool& TargetPool = PoolMap[ActorClass];
 		while (TargetPool.UnusedActors.Num() > 0)
 		{
-			AActor* ActionActor = TargetPool.UnusedActors.Pop(false);
+			AActor* ActionActor = TargetPool.UnusedActors.Pop(EAllowShrinking::No);
 			if (IsValid(ActionActor))
 			{
 				ActionActor->SetActorLocationAndRotation(Location, Rotation);
@@ -54,6 +64,4 @@ void UVSObjectPool::ReturnActorToPool(AActor* Actor)
 	const TSubclassOf<AActor> ActorClass = Actor->GetClass();
 	FCustomActorPool& ActorPool = PoolMap.FindOrAdd(ActorClass);
 	ActorPool.UnusedActors.Add(Actor);
-	
-	
 }

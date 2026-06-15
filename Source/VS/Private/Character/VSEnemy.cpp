@@ -3,9 +3,16 @@
 
 #include "Character/VSEnemy.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 AVSEnemy::AVSEnemy()
 {
 	PrimaryActorTick.bCanEverTick = false;
+	if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+	{
+		MovementComponent->bAutoActivate = false;
+		MovementComponent->Deactivate();
+	}
 }
 
 void AVSEnemy::SetIsElite(bool bIsInElite)

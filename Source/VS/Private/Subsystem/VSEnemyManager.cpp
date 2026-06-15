@@ -13,8 +13,14 @@ void UVSEnemyManager::Initialize(FSubsystemCollectionBase& Collection)
 	EnemyPool = NewObject<UVSObjectPool>(this);
 }
 
+//退出关卡时清空
 void UVSEnemyManager::Deinitialize()
 {
+	for (AActor* Actor : ActiveEnemies)
+	{
+		ReturnEnemiesToPool(Actor);
+	}
+	
 	if (EnemyPool)
 	{
 		EnemyPool->ClearPool();
@@ -29,7 +35,7 @@ AActor* UVSEnemyManager::SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, co
 	if (!EnemyPool) return nullptr;
 	
 	AActor* NewEnemy =  EnemyPool->GetActorFromPool(GetWorld(), EnemyClass, Location, FRotator::ZeroRotator);
-	if (NewEnemy)
+	if (NewEnemy && !ActiveEnemies.Contains(NewEnemy))
 	{
 		ActiveEnemies.Add(NewEnemy);
 	}
@@ -48,15 +54,9 @@ int32 UVSEnemyManager::GetActiveNormalEnemiesCount()
 	int32 Count = 0;
 	for (AActor* EnemyActor : ActiveEnemies)
 	{
-		if (AVSEnemy* Enemy = Cast<AVSEnemy>(EnemyActor))
-		{
-			bool bIsNormal = !Enemy->GetIsElite();
-			if (bIsNormal)
-			{
-				Count++;
-			}
-		}
+		Count++;
 	}
+	
 	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("Enemy Num: %d"), Count));
 	return Count;
 }

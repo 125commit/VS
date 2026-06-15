@@ -60,11 +60,6 @@ protected:
 
 private:
 	void ProcessSpawn();
-	void Recycled();
-	
-	//生成精英怪
-	void SpawnEliteEnemies();
-	FTimerHandle TimerHandle;
 	
 	FVector GetEnemyRandomSpawnLocation();
 	

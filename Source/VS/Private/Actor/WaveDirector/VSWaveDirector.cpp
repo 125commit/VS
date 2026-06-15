@@ -2,6 +2,8 @@
 
 
 #include "Actor/WaveDirector/VSWaveDirector.h"
+
+#include "Character/VSEnemy.h"
 #include "Subsystem/VSEnemyManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
@@ -16,9 +18,6 @@ void AVSWaveDirector::BeginPlay()
 {
 	Super::BeginPlay();
 	ElapsedTime = 0.f;
-	
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AVSWaveDirector::SpawnEliteEnemies, 60.f, true);
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AVSWaveDirector::Recycled, 5.f, true);
 }
 
 void AVSWaveDirector::Tick(float DeltaTime)
@@ -38,7 +37,7 @@ void AVSWaveDirector::ProcessSpawn()
 	UVSEnemyManager* EnemyManager = World->GetSubsystem<UVSEnemyManager>();
 	if (!EnemyManager) return;
 	
-	int32 CurrentNormalEnemiesNum = EnemyManager->GetActiveNormalEnemiesCount();
+	int32 CurrentEnemiesNum = EnemyManager->GetActiveNormalEnemiesCount();
 	
 	for (FWaveDirectorStruct& Wave : WaveDirectorStruct)
 	{
@@ -46,51 +45,42 @@ void AVSWaveDirector::ProcessSpawn()
 		{
 			if (ElapsedTime - Wave.LastSpawnTime > Wave.SpawnInterval)
 			{
-				if (CurrentNormalEnemiesNum < MaxNormalEnemyNum)
+				//Spawn Elite
+				if (Wave.bIsElite)
 				{
-					if (Wave.bIsElite) return;
-					
-					int32 NeedToSpawn = FMath::Min(Wave.EnemyNumPreWave, MaxNormalEnemyNum - CurrentNormalEnemiesNum);
-					
-					for (int32 i = 0; i < NeedToSpawn; i ++)
+					const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
+					if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation))
 					{
-						const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
-						EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation);
-						CurrentNormalEnemiesNum += 1;
+						if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
+						{
+							Enemy->SetIsElite(true);
+						}
+						CurrentEnemiesNum += 1;
+						Wave.LastSpawnTime = ElapsedTime;
 					}
-					Wave.LastSpawnTime = ElapsedTime;
 				}
+				//Spawn normal enemy
+				else
+				{
+					if (CurrentEnemiesNum < MaxNormalEnemyNum)
+					{
+						int32 NeedToSpawn = FMath::Min(Wave.EnemyNumPreWave, MaxNormalEnemyNum - CurrentEnemiesNum);
+					
+						for (int32 i = 0; i < NeedToSpawn; i ++)
+						{
+							const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
+							EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation);
+							CurrentEnemiesNum += 1;
+						}
+						Wave.LastSpawnTime = ElapsedTime;
+					}
+					
+				}
+				
 			}
 		}
 	}
 	
-}
-
-//测试：每隔一定时间回收一些
-void AVSWaveDirector::Recycled()
-{
-	UWorld* World = GetWorld();
-	if (!World) return;
-	
-	UVSEnemyManager* EnemyManager = World->GetSubsystem<UVSEnemyManager>();
-	if (!EnemyManager) return;
-	
-	int32 CurrentNormalEnemiesNum = EnemyManager->GetActiveNormalEnemiesCount();
-	
-	for (int32 i = 0; i < 5; i ++)
-	{
-		AActor* Enemy = EnemyManager->ActiveEnemies[i];
-		EnemyManager->ReturnEnemiesToPool(Enemy);
-		CurrentNormalEnemiesNum -= 1;
-	}
-}
-
-
-void AVSWaveDirector::SpawnEliteEnemies()
-{
-	//TODO：所有数据自己获取
-	//EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation);
-	//Wave.LastSpawnTime = ElapsedTime;
 }
 
 
