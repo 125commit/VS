@@ -53,10 +53,14 @@ public:
 
 	FORCEINLINE int32 GetPlayerLevel() const { return Level; }
 	FORCEINLINE float GetXP() const { return XP; }
-
+	FORCEINLINE int32 GetPendingLevelUps() const { return PendingLevelUps; }
+	
 	// 重抽管理
 	UFUNCTION(BlueprintCallable, Category = "PlayerState|Stats")
 	void ConsumeRerollCount();
+	
+	UFUNCTION(BlueprintCallable, Category = "PlayerState|Stats")
+	void ConsumePendingLevelUp();
 
 protected:
 	// -------------------------------------------------------------
