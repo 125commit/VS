@@ -160,7 +160,7 @@ void AVS_PlayerController::Server_ResumeGame_Implementation()
 void AVS_PlayerController::Server_QuitToSettlement_Implementation()
 {
 	SetPause(false);
-	// 🔴 [TODO: 依赖 GameMode] 通知 GM 执行退出结算逻辑
+	// 🔴 [ 依赖 GameMode] 通知 GM 执行退出结算逻辑
 }
 
 // ==========================================================
@@ -285,7 +285,7 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 
 	int32 GoldAmount = FMath::RandRange(100, 500);
 
-	// 🔴 [TODO: 依赖 PlayerState 与 ASC] 
+	// 🔴 [依赖 PlayerState 与 ASC] 
 	// 给 PS 发放金币，调用 ASC 给玩家发 AwardedTag 这张牌
 	
 	Client_ShowChestScreen(GoldAmount, AwardedTag);
@@ -297,17 +297,17 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 
 void AVS_PlayerController::Server_AcceptSettlement_Implementation()
 {
-	// 🔴 [TODO: 依赖 GameMode] 向 GM 申请切关卡
+	// 🔴 [依赖 GameMode] 向 GM 申请切关卡
 }
 
 void AVS_PlayerController::Server_BuyItem_Implementation(FGameplayTag ItemTag)
 {
-	// 🔴 [TODO: 依赖 GameMode] 向 GM 抛出要购买的 ItemTag，让 GM 扣款保存
+	// 🔴 [依赖 GameMode] 向 GM 抛出要购买的 ItemTag，让 GM 扣款保存
 }
 
 void AVS_PlayerController::Server_StartGame_Implementation()
 {
-	// 🔴 [TODO: 依赖 GameMode] 向 GM 发出开始申请
+	// 🔴 [依赖 GameMode] 向 GM 发出开始申请
 }
 
 // ==========================================================
