@@ -15,6 +15,7 @@ UVS_AttributeSet::UVS_AttributeSet()
 	InitMagnetRadius(0.f);
 	InitWeaponCooldown(0.f);
 	InitWeaponDuration(0.f);
+	InitWeaponArea(0.f);
 	InitGreedMultiplier(0.f);
 	
 	// 元属性初始化
@@ -30,6 +31,7 @@ void UVS_AttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, MagnetRadius, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponCooldown, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponDuration, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponArea, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, GreedMultiplier, COND_None, REPNOTIFY_Always);
 }
 // -------------------------------------------------------------
@@ -58,6 +60,10 @@ void UVS_AttributeSet::OnRep_WeaponCooldown(const FGameplayAttributeData& OldWea
 void UVS_AttributeSet::OnRep_WeaponDuration(const FGameplayAttributeData& OldWeaponDuration) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, WeaponDuration, OldWeaponDuration);
+}
+void UVS_AttributeSet::OnRep_WeaponArea(const FGameplayAttributeData& OldWeaponArea) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, WeaponArea, OldWeaponArea);
 }
 void UVS_AttributeSet::OnRep_GreedMultiplier(const FGameplayAttributeData& OldGreedMultiplier) const
 {

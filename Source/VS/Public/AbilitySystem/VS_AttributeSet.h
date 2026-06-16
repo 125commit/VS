@@ -72,7 +72,12 @@ public:
 	FGameplayAttributeData WeaponDuration ;
 	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, WeaponDuration );
 	
-	//7.贪婪/经验加成(经验获取加成比)
+	//7.武器范围倍率
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponArea, Category = "Vital Attributes")
+	FGameplayAttributeData WeaponArea;
+	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, WeaponArea);
+
+	//8.贪婪/经验加成(经验获取加成比)
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_GreedMultiplier, Category = "Vital Attributes")
 	FGameplayAttributeData GreedMultiplier;
 	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, GreedMultiplier);
@@ -92,6 +97,8 @@ public:
 	void OnRep_WeaponCooldown(const FGameplayAttributeData& OldWeaponCooldown) const;
 	UFUNCTION()
 	void OnRep_WeaponDuration(const FGameplayAttributeData& OldWeaponDuration) const;
+	UFUNCTION()
+	void OnRep_WeaponArea(const FGameplayAttributeData& OldWeaponArea) const;
 	UFUNCTION()
 	void OnRep_GreedMultiplier(const FGameplayAttributeData& OldGreedMultiplier) const;
 };
