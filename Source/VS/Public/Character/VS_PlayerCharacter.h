@@ -8,6 +8,8 @@
 
 class UAttributeSet;
 class UAbilitySystemComponent;
+
+class UGameplayAbility;
 /**
  * 玩家主角类
  */
@@ -34,4 +36,8 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent; // ASC 指针
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet; // AS 指针
+	
+	// 角色天生自带的技能 (可以在蓝图里配置)
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 };

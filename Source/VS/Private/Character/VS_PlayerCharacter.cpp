@@ -16,6 +16,19 @@ void AVS_PlayerCharacter::PossessedBy(AController* NewController)
 
 	// Server端附身时初始化 GAS
 	InitAbilityActorInfo();
+
+	// 赋予初始能力 (将蓝图里配置好的数组传给 ASC)
+	if (HasAuthority())
+	{
+		AVS_PlayerState* VSPlayerState = GetPlayerState<AVS_PlayerState>();
+		if (VSPlayerState)
+		{
+			if (UVS_AbilitySystemComponent* VSASC = Cast<UVS_AbilitySystemComponent>(VSPlayerState->GetAbilitySystemComponent()))
+			{
+				VSASC->AddCharacterAbilities(StartupAbilities);
+			}
+		}
+	}
 }
 
 void AVS_PlayerCharacter::OnRep_PlayerState()
