@@ -4,6 +4,7 @@
 #include "VSGameplayTags.h" 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Game/VS_GameMode.h"
 #include "GameFramework/Pawn.h"
 
 AVS_PlayerController::AVS_PlayerController()
@@ -65,7 +66,7 @@ void AVS_PlayerController::PauseButtonPressed()
 }
 
 // ==========================================================
-// 发牌器算法：依托 GameplayTag 
+// 核心发牌器算法：依托 GameplayTag 的终极防黑客槽位过滤！
 // ==========================================================
 TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 {
@@ -79,7 +80,7 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 
 	UVS_AbilitySystemComponent* ASC = Cast<UVS_AbilitySystemComponent>(VSPS->GetAbilitySystemComponent());
 
-	// 1. 调用 ASC 接口，拿到玩家身上所有的技能及其等级
+	// 1. 调用 ASC 接口，拿到玩家身上所有的武林秘籍及其等级
 	TArray<FVSOwnedAbilityInfo> OwnedAbilities = ASC->GetOwnedAbilities();
 	
 	int32 WeaponCount = 0;
@@ -160,7 +161,11 @@ void AVS_PlayerController::Server_ResumeGame_Implementation()
 void AVS_PlayerController::Server_QuitToSettlement_Implementation()
 {
 	SetPause(false);
-	// 🔴 [ 依赖 GameMode] 通知 GM 执行退出结算逻辑
+	
+	if (AVS_GameMode* GM = GetWorld()->GetAuthGameMode<AVS_GameMode>())
+	{
+		GM->ProcessMatchEndAndTravel(this);
+	}
 }
 
 // ==========================================================
@@ -285,8 +290,24 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 
 	int32 GoldAmount = FMath::RandRange(100, 500);
 
-	// 🔴 [依赖 PlayerState 与 ASC] 
-	// 给 PS 发放金币，调用 ASC 给玩家发 AwardedTag 这张牌
+	AVS_PlayerState* VSPS = GetPlayerState<AVS_PlayerState>();
+	if (VSPS && AbilityInfoData)
+	{
+		// 1. 发放金币
+		VSPS->AddGold(GoldAmount);
+		
+		// 2. 自动给玩家发这张牌 / 升该技能一级
+		if (AwardedTag.IsValid())
+		{
+			UVS_AbilitySystemComponent* ASC = Cast<UVS_AbilitySystemComponent>(VSPS->GetAbilitySystemComponent());
+			FVSAbilityInfo SelectedInfo = AbilityInfoData->FindAbilityInfoForTag(AwardedTag);
+			
+			if (ASC && SelectedInfo.AbilityClass)
+			{
+				ASC->ServerUpgradeWeapon(SelectedInfo.AbilityClass);
+			}
+		}
+	}
 	
 	Client_ShowChestScreen(GoldAmount, AwardedTag);
 }
@@ -297,17 +318,26 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 
 void AVS_PlayerController::Server_AcceptSettlement_Implementation()
 {
-	// 🔴 [依赖 GameMode] 向 GM 申请切关卡
+	if (AVS_GameMode* GM = GetWorld()->GetAuthGameMode<AVS_GameMode>())
+	{
+		GM->TravelToMainMenuMap();
+	}
 }
 
 void AVS_PlayerController::Server_BuyItem_Implementation(FGameplayTag ItemTag)
 {
-	// 🔴 [依赖 GameMode] 向 GM 抛出要购买的 ItemTag，让 GM 扣款保存
+	if (AVS_GameMode* GM = GetWorld()->GetAuthGameMode<AVS_GameMode>())
+	{
+		GM->ProcessItemPurchase(ItemTag, this);
+	}
 }
 
 void AVS_PlayerController::Server_StartGame_Implementation()
 {
-	// 🔴 [依赖 GameMode] 向 GM 发出开始申请
+	if (AVS_GameMode* GM = GetWorld()->GetAuthGameMode<AVS_GameMode>())
+	{
+		GM->TravelToGameMap();
+	}
 }
 
 // ==========================================================

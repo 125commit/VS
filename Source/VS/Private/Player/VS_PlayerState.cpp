@@ -29,6 +29,8 @@ void AVS_PlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(AVS_PlayerState, XP);
 	DOREPLIFETIME(AVS_PlayerState, PendingLevelUps);
 	DOREPLIFETIME(AVS_PlayerState, RerollCount);
+	DOREPLIFETIME(AVS_PlayerState, KillCount);
+	DOREPLIFETIME(AVS_PlayerState, Gold);
 }
 void AVS_PlayerState::AddXP(float BaseXP)
 {
@@ -82,9 +84,27 @@ void AVS_PlayerState::ConsumeRerollCount()
 void AVS_PlayerState::ConsumePendingLevelUp()
 {
 	if (HasAuthority() && PendingLevelUps > 0)
-		{
-				PendingLevelUps--;
-		}
+	{
+		PendingLevelUps--;
+	}
+}
+
+void AVS_PlayerState::AddKillCount(int32 Amount)
+{
+	if (HasAuthority())
+	{
+		KillCount += Amount;
+		OnKillCountChangedDelegate.Broadcast(KillCount);
+	}
+}
+
+void AVS_PlayerState::AddGold(int32 Amount)
+{
+	if (HasAuthority())
+	{
+		Gold += Amount;
+		OnGoldChangedDelegate.Broadcast(Gold);
+	}
 }
 
 void AVS_PlayerState::CalculateAndBroadcastXPProgress()
@@ -123,4 +143,14 @@ void AVS_PlayerState::OnRep_XP(float OldXP)
 void AVS_PlayerState::OnRep_RerollCount(int32 OldRerollCount)
 {
 	// 留给 WidgetController 监听并更新重抽按钮状态
+}
+
+void AVS_PlayerState::OnRep_KillCount(int32 OldKillCount)
+{
+	OnKillCountChangedDelegate.Broadcast(KillCount);
+}
+
+void AVS_PlayerState::OnRep_Gold(int32 OldGold)
+{
+	OnGoldChangedDelegate.Broadcast(Gold);
 }
