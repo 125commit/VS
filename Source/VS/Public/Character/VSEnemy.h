@@ -6,6 +6,8 @@
 #include "Character/VSCharacterBase.h"
 #include "VSEnemy.generated.h"
 
+class UDA_EnemyDropTable;
+
 /**
  * 
  */
@@ -23,6 +25,8 @@ public:
 	void SetVisualSpeed(float Speed);
 	
 	void OnRecycled();
+
+	FORCEINLINE UDA_EnemyDropTable* GetDropTable() const { return DropTable; }
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float VisualSpeed = 200.f;
@@ -32,6 +36,9 @@ public:
 
 	
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Drop")
+	TObjectPtr<UDA_EnemyDropTable> DropTable;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	bool bIsElite = false;
 

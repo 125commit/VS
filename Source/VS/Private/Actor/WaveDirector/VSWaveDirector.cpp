@@ -2,10 +2,9 @@
 
 
 #include "Actor/WaveDirector/VSWaveDirector.h"
-
+#include "GameFramework/Actor.h"
 #include "Character/VSEnemy.h"
 #include "Subsystem/VSEnemyManager.h"
-#include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
@@ -39,11 +38,11 @@ void AVSWaveDirector::ProcessSpawn()
 	
 	int32 CurrentEnemiesNum = EnemyManager->GetActiveNormalEnemiesCount();
 	
-	for (FWaveDirectorStruct& Wave : WaveDirectorStruct)
+	for (FWaveSpawnConfig& Wave : WaveConfig->Waves)
 	{
 		if (ElapsedTime > Wave.StartTime && ElapsedTime < Wave.EndTime)
 		{
-			if (ElapsedTime - Wave.LastSpawnTime > Wave.SpawnInterval)
+			if (ElapsedTime - LastSpawnTime > Wave.SpawnInterval)
 			{
 				//Spawn Elite
 				if (Wave.bIsElite)
@@ -56,15 +55,15 @@ void AVSWaveDirector::ProcessSpawn()
 							Enemy->SetIsElite(true);
 						}
 						CurrentEnemiesNum += 1;
-						Wave.LastSpawnTime = ElapsedTime;
+						LastSpawnTime = ElapsedTime;
 					}
 				}
 				//Spawn normal enemy
 				else
 				{
-					if (CurrentEnemiesNum < MaxNormalEnemyNum)
+					if (CurrentEnemiesNum < WaveConfig->MaxNormalEnemyNum)
 					{
-						int32 NeedToSpawn = FMath::Min(Wave.EnemyNumPreWave, MaxNormalEnemyNum - CurrentEnemiesNum);
+						int32 NeedToSpawn = FMath::Min(Wave.EnemyNumPerWave, WaveConfig->MaxNormalEnemyNum - CurrentEnemiesNum);
 					
 						for (int32 i = 0; i < NeedToSpawn; i ++)
 						{
@@ -72,7 +71,7 @@ void AVSWaveDirector::ProcessSpawn()
 							EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation);
 							CurrentEnemiesNum += 1;
 						}
-						Wave.LastSpawnTime = ElapsedTime;
+						LastSpawnTime = ElapsedTime;
 					}
 					
 				}
@@ -96,7 +95,7 @@ FVector AVSWaveDirector::GetEnemyRandomSpawnLocation()
 	const float RandomYaw = FMath::FRandRange(0.0f, 360.0f);
 	const FVector Direction = FVector(FMath::Cos(FMath::DegreesToRadians(RandomYaw)), FMath::Sin(FMath::DegreesToRadians(RandomYaw)), 0.0f);
 	
-	const float SpawnDistance = FMath::FRandRange(MinSpawnRadius, MaxSpawnRadius);
+	const float SpawnDistance = FMath::FRandRange(WaveConfig->MinSpawnRadius, WaveConfig->MaxSpawnRadius);
 	
 	FVector SpawnLocation = PlayerPos + (Direction * SpawnDistance);
 	SpawnLocation.Z = PlayerPos.Z;

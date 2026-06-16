@@ -5,8 +5,9 @@
 
 void UVSObjectPool::ClearPool()
 {
+	TMap<TSubclassOf<AActor>, FCustomActorPool> PoolsToClear = MoveTemp(PoolMap);
 	PoolMap.Empty();
-	for (auto Pair : PoolMap)
+	for (auto Pair : PoolsToClear)
 	{
 		for (AActor* Actor: Pair.Value.UnusedActors)
 		{
