@@ -8,7 +8,6 @@
 class UDA_LevelUpInfo;
 class UAbilitySystemComponent;
 class UVS_AttributeSet;
-class UVS_LevelUpInfo; // 记录每级所需 XP 的数据资产
 
 // -------------------------------------------------------------
 // UI 与控制器广播委托 (Model -> Controller -> View 的通讯桥梁)
@@ -32,9 +31,6 @@ public:
 	// -------------------------------------------------------------
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UVS_AttributeSet* GetAttributeSet() const { return AttributeSet; }
-	
-
-	FORCEINLINE int32 GetRerollCount() const { return RerollCount; }
 
 	// -------------------------------------------------------------
 	// 经验与等级广播委托 (供外部如 UI 控制器监听)
@@ -42,6 +38,8 @@ public:
 	FOnXPWindowChanged OnXPWindowChangedDelegate;         
 	FOnPlayerStatChanged OnLevelChangedDelegate;          
 	FOnPlayerFloatStatChanged OnXPPercentChangedDelegate; 
+	FOnPlayerStatChanged OnKillCountChangedDelegate;
+	FOnPlayerStatChanged OnGoldChangedDelegate;
 
 	// -------------------------------------------------------------
 	// 高性能 XP 结算系统 (彻底绕开 GAS，由 DropManager 调用)
@@ -54,11 +52,21 @@ public:
 	FORCEINLINE int32 GetPlayerLevel() const { return Level; }
 	FORCEINLINE float GetXP() const { return XP; }
 	FORCEINLINE int32 GetPendingLevelUps() const { return PendingLevelUps; }
-	
-	// 重抽管理
+	FORCEINLINE int32 GetKillCount() const { return KillCount; }
+	FORCEINLINE int32 GetRerollCount() const { return RerollCount; }
+	FORCEINLINE int32 GetGold() const { return Gold; }
+
+	// 局内数据管理
+	UFUNCTION(BlueprintCallable, Category = "PlayerState|Stats")
+	void AddKillCount(int32 Amount = 1);
+
+	UFUNCTION(BlueprintCallable, Category = "PlayerState|Stats")
+	void AddGold(int32 Amount);
+
+	// 重抽与升级管理
 	UFUNCTION(BlueprintCallable, Category = "PlayerState|Stats")
 	void ConsumeRerollCount();
-	
+
 	UFUNCTION(BlueprintCallable, Category = "PlayerState|Stats")
 	void ConsumePendingLevelUp();
 
@@ -94,6 +102,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_RerollCount, Category = "PlayerState|Stats")
 	int32 RerollCount = 1;
 
+	// 单局击杀数
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_KillCount, Category = "PlayerState|Stats")
+	int32 KillCount = 0;
+
+	// 单局获取金币
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_Gold, Category = "PlayerState|Stats")
+	int32 Gold = 0;
+
 	// -------------------------------------------------------------
 	// 网络同步回调
 	// -------------------------------------------------------------
@@ -105,6 +121,12 @@ protected:
 
 	UFUNCTION()
 	void OnRep_RerollCount(int32 OldRerollCount);
+
+	UFUNCTION()
+	void OnRep_KillCount(int32 OldKillCount);
+
+	UFUNCTION()
+	void OnRep_Gold(int32 OldGold);
 
 private:
 	// 辅助函数：统一计算并广播相对于【当前等级】的经验数值和百分比
