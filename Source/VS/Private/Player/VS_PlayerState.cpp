@@ -79,6 +79,14 @@ void AVS_PlayerState::ConsumeRerollCount()
 	}
 }
 
+void AVS_PlayerState::ConsumePendingLevelUp()
+{
+	if (HasAuthority() && PendingLevelUps > 0)
+		{
+				PendingLevelUps--;
+		}
+}
+
 void AVS_PlayerState::CalculateAndBroadcastXPProgress()
 {
 	if (!LevelUpInfo) return;

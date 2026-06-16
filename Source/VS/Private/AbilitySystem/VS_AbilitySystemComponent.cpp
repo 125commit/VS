@@ -1,9 +1,31 @@
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/Ability/VS_GameplayAbility.h"
 
 void UVS_AbilitySystemComponent::AbilityActorInfoSet()
 {
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UVS_AbilitySystemComponent::ClientEffectApplied);
+}
+
+TArray<FVSOwnedAbilityInfo> UVS_AbilitySystemComponent::GetOwnedAbilities() const
+{
+	TArray<FVSOwnedAbilityInfo> Result;
+	// 遍历 ASC 内部当前所有被赋予的技能 (Spec)
+	for (const FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
+	{
+		// 尝试强转为我们特制的 VS 技能基类
+		if (const UVS_GameplayAbility* VSAbility = Cast<UVS_GameplayAbility>(Spec.Ability))
+		{
+			FVSOwnedAbilityInfo Info;
+			// 完美提取出策划在蓝图里配置的烙印！
+			Info.AbilityTag = VSAbility->AbilityTag;
+			Info.AbilityTypeTag = VSAbility->AbilityTypeTag;
+			Info.Level = Spec.Level;
+			
+			Result.Add(Info);
+		}
+	}
+	return Result;
 }
 
 // =========================================================================

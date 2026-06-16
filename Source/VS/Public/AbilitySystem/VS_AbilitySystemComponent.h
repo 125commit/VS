@@ -9,6 +9,16 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 
+USTRUCT()
+struct FVSOwnedAbilityInfo
+{
+	GENERATED_BODY()
+	FGameplayTag AbilityTag;
+	FGameplayTag AbilityTypeTag;
+	int32 Level;
+};
+
+
 UCLASS()
 class VS_API UVS_AbilitySystemComponent : public UAbilitySystemComponent
 {
@@ -21,6 +31,9 @@ public:
 	// Vampire Survivors 核心武器管线
 	// -----------------------------------------------------------------
 
+	// 提取自身持有的所有有效技能的身份信息和等级
+	TArray<FVSOwnedAbilityInfo> GetOwnedAbilities() const;
+	
 	// 赋予玩家初始武器/被动 (通常是角色天生自带的那个武器)
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
 

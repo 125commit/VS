@@ -13,7 +13,6 @@ class UDA_AbilityInfo;
 
 // ==========================================================
 // 客户端喇叭：原生多播委托
-// 传富文本的 FVSAbilityInfo 给 UI 选卡
 // ==========================================================
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnShowLevelUpMenuSignature, const TArray<FVSAbilityInfo>& /*SkillOptions*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnShowChestMenuSignature, int32 /*GoldAmount*/, const FVSAbilityInfo& /*AwardedSkill*/);
@@ -27,7 +26,6 @@ class VS_API AVS_PlayerController : public APlayerController
 public:
 	AVS_PlayerController();
 
-	// 客户端大喇叭
 	FOnShowLevelUpMenuSignature OnShowLevelUpMenuDelegate;
 	FOnShowChestMenuSignature OnShowChestMenuDelegate;
 	FOnShowPauseMenuSignature OnShowPauseMenuDelegate;
@@ -37,7 +35,7 @@ protected:
 	virtual void SetupInputComponent() override;
 
 private:
-	// 全游戏技能图鉴，服务端查表抽卡，客户端查表翻译
+	// 全游戏技能图鉴
 	UPROPERTY(EditDefaultsOnly, Category = "VS|Data")
 	TObjectPtr<UDA_AbilityInfo> AbilityInfoData;
 
@@ -54,6 +52,11 @@ private:
 	void Move(const FInputActionValue& InputActionValue);
 	void PauseButtonPressed();
 
+	// ==========================================================
+	// 辅助抽卡算法：校验 ASC 槽位与等级，生成可用的发牌池
+	// ==========================================================
+	TArray<FGameplayTag> GenerateValidAbilityPool();
+
 public:
 	// ==========================================================
 	// 服务端黑盒权威 (Server RPCs)
@@ -63,21 +66,22 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_PauseGame();
 
+	// 暴露给底层UI：暂停恢复、宝箱动画播完后均调用此函数解冻
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="VS|GameFlow")
 	void Server_ResumeGame();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="VS|GameFlow")
 	void Server_QuitToSettlement();
 
-	// 【局内：升级与重抽管线】
+	// 【局内：升级管线】
 	UFUNCTION(Server, Reliable)
 	void Server_HandleLevelUp();
 
-	// 暴露给UI调用：玩家点击“重新Roll”
+	// 【局内：重抽管线】
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="VS|LevelUp")
 	void Server_RerollUpgrade();
 
-	// 暴露给UI调用：玩家确定选择了技能
+	// 因为需要回传 Tag，所以不可与 ResumeGame 共用
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="VS|LevelUp")
 	void Server_SelectUpgrade(FGameplayTag SelectedTag);
 
@@ -98,7 +102,6 @@ public:
 	// ==========================================================
 	// 客户端接收端 (Client RPCs)
 	// ==========================================================
-	// 剔除了 Level 和 XP，只下发 Tag
 	UFUNCTION(Client, Reliable)
 	void Client_ShowLevelUpScreen(const TArray<FGameplayTag>& SkillOptions);
 
