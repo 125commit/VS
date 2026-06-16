@@ -20,6 +20,7 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
+	//仅在运行时触发 Tick
 	virtual bool IsTickableInEditor() const override { return false; }
 
 	AActor* SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, const FVector& Location);
@@ -29,6 +30,8 @@ public:
 
 	UPROPERTY()
 	TArray<AActor*> ActiveEnemies;
+	
+	void OnEnemyDie(AVSEnemy* Enemy);
 
 private:
 	void ProcessEnemyLogic(float DeltaTime);

@@ -5,8 +5,10 @@
 
 #include "Pool/VSObjectPool.h"
 #include "Character/VSEnemy.h"
+#include "Data/Subsystem/DA_EnemyDropTable.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Subsystem/VSDropManager.h"
 
 
 void UVSEnemyManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -37,6 +39,7 @@ void UVSEnemyManager::Deinitialize()
 	Super::Deinitialize();
 }
 
+//追踪 EnemyManager 使用 Tick 的性能消耗
 TStatId UVSEnemyManager::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UVSEnemyManager, STATGROUP_Tickables);
@@ -83,6 +86,19 @@ void UVSEnemyManager::ReturnEnemiesToPool(AActor* Enemy)
 int32 UVSEnemyManager::GetActiveNormalEnemiesCount() const
 {
 	return ActiveEnemies.Num();
+}
+
+void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
+{
+	if (!Enemy) return;
+
+	UVSDropManager* DropManager = GetWorld()->GetSubsystem<UVSDropManager>();
+	if (!DropManager) return;
+
+	if (UDA_EnemyDropTable* DropTable = Enemy->GetDropTable())
+	{
+		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
+	}
 }
 
 void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
