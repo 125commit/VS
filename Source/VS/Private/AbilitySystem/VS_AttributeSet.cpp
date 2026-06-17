@@ -8,7 +8,7 @@
 UVS_AttributeSet::UVS_AttributeSet()
 {
 	// 真正的初始数值将由 PlayerState 的 InitAbilityActorInfo 中应用 GameplayEffect 覆盖。
-	// 这里的默认值仅作底层兜底。对于倍率属性，兜底值设为 1.f 以免发生乘 0 变 0 的BUG。
+	// 这里的默认值仅作底层兜底。对于倍率属性，兜底值设为 1.f ，以免发生乘 0 变 0 的BUG。
 	InitHealth(0.f);
 	InitMaxHealth(0.f);
 	InitBaseDamage(1.f);          // 伤害倍率默认 1.0
