@@ -238,7 +238,7 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 		if (ASC && SelectedInfo.AbilityClass)
 		{
 			// 发放技能或升级
-			ASC->ServerUpgradeWeapon(SelectedInfo.AbilityClass);
+			ASC->ServerUpgradeAbility(SelectedInfo.AbilityClass);
 			
 			// 扣减待处理升级次数
 			VSPS->ConsumePendingLevelUp();
@@ -304,7 +304,7 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 			
 			if (ASC && SelectedInfo.AbilityClass)
 			{
-				ASC->ServerUpgradeWeapon(SelectedInfo.AbilityClass);
+				ASC->ServerUpgradeAbility(SelectedInfo.AbilityClass);
 			}
 		}
 	}
