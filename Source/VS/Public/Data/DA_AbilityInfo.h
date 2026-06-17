@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
@@ -57,6 +57,11 @@ struct FVSAbilityInfo
 	// 满级上限统一设定为 5 级，减轻战斗逻辑开发量
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
 	int32 MaxLevel = 5;
+
+	// UI/Logic：每一级的基础伤害数值
+	// 索引0=1级的基础伤害，索引1=2级的基础伤害...
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
+	TArray<float> LevelDamages;
 };
 
 // ==========================================================

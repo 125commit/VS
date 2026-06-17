@@ -1,6 +1,6 @@
 #include "Player/VS_PlayerState.h"
 #include "Player/VS_PlayerController.h" // 引入 PC
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Data/DA_LevelUpInfo.h"
 #include "Net/UnrealNetwork.h"
@@ -9,7 +9,7 @@ AVS_PlayerState::AVS_PlayerState()
 {
 	SetNetUpdateFrequency(100.f);
 
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent = CreateDefaultSubobject<UVS_AbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 

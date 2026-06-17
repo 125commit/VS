@@ -9,7 +9,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FVSOwnedAbilityInfo
 {
 	GENERATED_BODY()

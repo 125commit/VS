@@ -11,7 +11,7 @@ class VS_API UVS_GameplayAbility : public UGameplayAbility
 
 public:
 	// ==========================================
-	// Tag 烙印区 (作为中介的核心)
+	// Tag
 	// ==========================================
 
 	// 1. 本技能的唯一身份 Tag (例如配置为：Abilities.Weapon.Garlic)
