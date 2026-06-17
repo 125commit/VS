@@ -9,6 +9,10 @@ AVS_PlayerState::AVS_PlayerState()
 {
 	SetNetUpdateFrequency(100.f);
 
+	// 初始化等级为 1，防止开局 0 经验时瞬间触发升级导致整个游戏暂停死锁！
+	Level = 1;
+	XP = 0.f;
+
 	AbilitySystemComponent = CreateDefaultSubobject<UVS_AbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
