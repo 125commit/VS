@@ -31,11 +31,11 @@ TArray<FVSOwnedAbilityInfo> UVS_AbilitySystemComponent::GetOwnedAbilities() cons
 // =========================================================================
 // 吸血鬼幸存者：升级菜单选卡核心入口
 // =========================================================================
-void UVS_AbilitySystemComponent::ServerUpgradeWeapon_Implementation(TSubclassOf<UGameplayAbility> WeaponAbilityClass)
+void UVS_AbilitySystemComponent::ServerUpgradeAbility_Implementation(TSubclassOf<UGameplayAbility> WeaponAbilityClass)
 {
 	if (!WeaponAbilityClass) return;
 
-	// 1. 查表：我的技能栏里是不是已经有这把武器了？
+	// 1. 查表：我的技能栏里是不是已经有这个技能了？
 	FGameplayAbilitySpec* ExistingSpec = FindAbilitySpecFromClass(WeaponAbilityClass);
 	
 	if (ExistingSpec)
@@ -46,7 +46,11 @@ void UVS_AbilitySystemComponent::ServerUpgradeWeapon_Implementation(TSubclassOf<
 		// 强制同步脏数据到客户端
 		MarkAbilitySpecDirty(*ExistingSpec);
 		
-		// TODO: 在此处调用 Client RPC 通知前端 UI 刷新武器等级图标
+		// 发送升级事件，让被动技能刷新属性
+		FGameplayEventData Payload;
+		Payload.EventTag = FGameplayTag::RequestGameplayTag(FName("Ability.Upgrade"));
+		Payload.EventMagnitude = ExistingSpec->Level;
+		HandleGameplayEvent(Payload.EventTag, &Payload);
 	}
 	else
 	{
@@ -54,7 +58,7 @@ void UVS_AbilitySystemComponent::ServerUpgradeWeapon_Implementation(TSubclassOf<
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(WeaponAbilityClass, 1);
 		GiveAbility(AbilitySpec);
 		
-		// 吸血鬼核心：武器一旦拿到手，立刻无条件启动后台循环 (如大蒜生成光环，皮鞭启动 Timer)！
+		// 吸血鬼核心：技能一旦拿到手，立刻无条件启动后台循环 (被动应用 GE，皮鞭启动 Timer)！
 		TryActivateAbility(AbilitySpec.Handle);
 	}
 }

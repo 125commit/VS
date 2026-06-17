@@ -8,15 +8,15 @@
 UVS_AttributeSet::UVS_AttributeSet()
 {
 	// 真正的初始数值将由 PlayerState 的 InitAbilityActorInfo 中应用 GameplayEffect 覆盖。
-	// 这里的 0.f 仅作防止内存未初始化的底层兜底。
+	// 这里的默认值仅作底层兜底。对于倍率属性，兜底值设为 1.f ，以免发生乘 0 变 0 的BUG。
 	InitHealth(0.f);
 	InitMaxHealth(0.f);
-	InitBaseDamage(0.f);          
+	InitBaseDamage(1.f);          // 伤害倍率默认 1.0
 	InitMagnetRadius(0.f);
 	InitWeaponCooldown(0.f);
 	InitWeaponDuration(0.f);
-	InitWeaponArea(0.f);
-	InitGreedMultiplier(0.f);
+	InitWeaponArea(1.f);          // 范围倍率默认 1.0
+	InitGreedMultiplier(1.f);     // 经验倍率默认 1.0
 	
 	// 元属性初始化
 	InitIncomingDamage(0.f);
