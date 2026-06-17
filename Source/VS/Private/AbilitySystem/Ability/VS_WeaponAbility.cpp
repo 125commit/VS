@@ -7,6 +7,7 @@
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "Data/DA_AbilityInfo.h"
+#include "VSGameplayTags.h"
 
 void UVS_WeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -22,7 +23,8 @@ void UVS_WeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 void UVS_WeaponAbility::OnWeaponFire()
 {
 	if (!GetAvatarActorFromActorInfo()) return;
-
+	
+	/* 不是所有技能都用一套数据，下面这些数据就当是初始化 */
 	// 1. 获取四维属性 (从 AttributeSet 中读取最新的数值)
 	float Cooldown = GetAttributeValue(UVS_AttributeSet::GetWeaponCooldownAttribute());
 	float Area = GetAttributeValue(UVS_AttributeSet::GetWeaponAreaAttribute());
@@ -63,10 +65,11 @@ void UVS_WeaponAbility::OnWeaponFire()
 			}
 			
 			float FinalDamage = BaseDamage * Might;
-
+			
 			// 注入核心参数：范围、存活时间、最终计算伤害
 			Weapon->InitWeapon(Area, Duration, FinalDamage);
-
+			
+			
 			// 完成生成 (会触发 Weapon 的 BeginPlay)
 			Weapon->FinishSpawning(SpawnTransform);
 		}
