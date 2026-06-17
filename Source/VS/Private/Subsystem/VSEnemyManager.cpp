@@ -120,7 +120,7 @@ void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
 		if (DistanceSq <= AttackRadiusSq)
 		{
 			Enemy->SetVisualSpeed(0.f);
-			//TODO:造成伤害
+			//TODO:对玩家造成伤害
 		}
 		else
 		{
