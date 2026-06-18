@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "GameplayTagContainer.h"
 #include "Data/DA_ToolPrice.h"
 #include "VS_GameMode.generated.h"
@@ -9,7 +9,7 @@
 class AVS_PlayerController;
 
 UCLASS()
-class VS_API AVS_GameMode : public AGameModeBase
+class VS_API AVS_GameMode : public AGameMode
 {
 	GENERATED_BODY()
 
