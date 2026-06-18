@@ -29,7 +29,7 @@ public:
 	void TryPickUp(float DeltaTime);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Drop")
+	UPROPERTY()
 	TObjectPtr<UDA_DropItems> DropSettings;
 
 	UPROPERTY()

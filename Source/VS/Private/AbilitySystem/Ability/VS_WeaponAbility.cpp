@@ -4,10 +4,11 @@
 #include "AbilitySystem/Ability/VS_WeaponAbility.h"
 #include "Actor/VS_WeaponActor.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystem/VS_AttributeSet.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "AbilitySystem/VS_AttributeSet.h"
 #include "Data/DA_AbilityInfo.h"
-#include "VSGameplayTags.h"
+
+
 
 void UVS_WeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
@@ -22,64 +23,59 @@ void UVS_WeaponAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UVS_WeaponAbility::OnWeaponFire()
 {
-	if (!GetAvatarActorFromActorInfo()) return;
+	if (!GetAvatarActorFromActorInfo() || !GlobalAbilityInfoData) return;
 	
-	/* 不是所有技能都用一套数据，下面这些数据就当是初始化 */
-	// 1. 获取四维属性 (从 AttributeSet 中读取最新的数值)
-	float Cooldown = GetAttributeValue(UVS_AttributeSet::GetWeaponCooldownAttribute());
-	float Area = GetAttributeValue(UVS_AttributeSet::GetWeaponAreaAttribute());
-	float Duration = GetAttributeValue(UVS_AttributeSet::GetWeaponDurationAttribute());
-	float Might = GetAttributeValue(UVS_AttributeSet::GetBaseDamageAttribute());
-
-	// 容错：防止配置错误导致逻辑崩溃或无限死循环
-	if (Cooldown <= 0.05f) Cooldown = 1.0f; // 冷却极限保护
-	if (Area <= 0.01f) Area = 1.0f;         // 范围极限保护
-
-	// 2. 生成实体武器打手
-	if (WeaponActorClass)
-	{
-		FTransform SpawnTransform = GetAvatarActorFromActorInfo()->GetActorTransform();
-		
-		// 使用 Deferred 延迟生成，以便在 BeginPlay 之前灌入参数
-		AVS_WeaponActor* Weapon = GetWorld()->SpawnActorDeferred<AVS_WeaponActor>(
-			WeaponActorClass, 
-			SpawnTransform, 
-			GetAvatarActorFromActorInfo(), 
-			Cast<APawn>(GetAvatarActorFromActorInfo()), 
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-		);
-
-		if (Weapon)
-		{
-			// 3. 计算最终伤害
-			float BaseDamage = 5.0f; // 底层兜底伤害
-			if (GlobalAbilityInfoData)
-			{
-				FVSAbilityInfo Info = GlobalAbilityInfoData->FindAbilityInfoForTag(AbilityTag);
-				int32 CurrentLevel = GetAbilityLevel();
-				// 数组索引从0开始，CurrentLevel 从1开始
-				if (Info.LevelDamages.IsValidIndex(CurrentLevel - 1))
-				{
-					BaseDamage = Info.LevelDamages[CurrentLevel - 1];
-				}
-			}
-			
-			float FinalDamage = BaseDamage * Might;
-			
-			// 注入核心参数：范围、存活时间、最终计算伤害
-			Weapon->InitWeapon(Area, Duration, FinalDamage);
-			
-			
-			// 完成生成 (会触发 Weapon 的 BeginPlay)
-			Weapon->FinishSpawning(SpawnTransform);
-		}
-	}
-
-	// 4. 进入大循环倒计时
-	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, Cooldown);
+	FVSAbilityRuntimeStats Stats =  GlobalAbilityInfoData->ComputeAbilityStats(AbilityTag, GetAbilityLevel(),
+		GetAbilitySystemComponentFromActorInfo(),false,false);
+	
+	// Start fire
+	ExecuteFire(Stats);
+	
+	//Schedule Next Fire
+	const float Delay = Stats.bNoCooldown ? 0.f : Stats.Cooldown;
+	
+	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, Delay);
 	DelayTask->OnFinish.AddDynamic(this, &UVS_WeaponAbility::OnWeaponFire);
 	DelayTask->ReadyForActivation();
 }
+
+void UVS_WeaponAbility::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
+{
+	//给空的技能子类用
+	//TODO：子类都做完之后可以删除它
+	if (!WeaponActorClass || !GetAvatarActorFromActorInfo()) return;
+	
+	AActor* AvatarActor = GetAvatarActorFromActorInfo();
+	const FTransform& SpawningTransform = AvatarActor->GetTransform();
+	
+	AVS_WeaponActor* Weapon = GetWorld()->SpawnActorDeferred<AVS_WeaponActor>(
+		WeaponActorClass,
+		SpawningTransform,
+		AvatarActor,
+		Cast<APawn>(AvatarActor),
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+	);
+	
+	if (!Weapon) return;
+	
+	FVSWeaponInitParams Params;
+	Params.Area = Stats.Area;
+	Params.Duration = Stats.Duration;
+	Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
+	Params.FacingRotation = AvatarActor->GetActorRotation();
+	
+	Weapon->InitFromParams(Params);
+	
+	//done
+	Weapon->FinishSpawning(SpawningTransform);
+}
+
+float UVS_WeaponAbility::ComputeFinalDamage(float BaseDamage) const
+{
+	const float Might = GetAttributeValue(UVS_AttributeSet::GetBaseDamageAttribute());
+	return BaseDamage * Might;
+}
+
 
 float UVS_WeaponAbility::GetAttributeValue(const FGameplayAttribute& Attribute) const
 {

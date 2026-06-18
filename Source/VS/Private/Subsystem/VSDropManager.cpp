@@ -14,6 +14,18 @@ void UVSDropManager::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	DropPool = NewObject<UVSObjectPool>(this);
 
+	//初始化设置DropSetting
+	DropSettings = Cast<UDA_DropItems>(StaticLoadObject(
+		UDA_DropItems::StaticClass(),
+		nullptr,
+		TEXT("/Game/Data/DA_DropItems.DA_DropItems")
+	));
+	
+	if (!DropSettings)
+	{
+		UE_LOG(LogTemp, Error, TEXT("VSDropManager: Failed to load DA_DropItems at /Game/Data/DA_DropItems"));
+	}
+	
 	if (DropSettings)
 	{
 		MagnetRadius = DropSettings->DefaultMagnetRadius;

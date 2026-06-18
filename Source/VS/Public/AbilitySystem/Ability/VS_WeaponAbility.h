@@ -7,7 +7,7 @@
 #include "VS_WeaponAbility.generated.h"
 
 class AVS_WeaponActor;
-
+struct FVSAbilityRuntimeStats;
 /**
  * 武器技能基类 (大脑)
  * 负责大循环倒计时，并生成包含碰撞和特效的实体打手
@@ -38,8 +38,14 @@ protected:
 
 	// 循环触发的核心函数
 	UFUNCTION()
-	void OnWeaponFire();
-
+	virtual void OnWeaponFire();
+	
+	virtual void ExecuteFire(const FVSAbilityRuntimeStats& Stats);
+	
+	/** BaseDamage(表) × Might(AttributeSet) */
+	float ComputeFinalDamage(float BaseDamage) const;
+	
+	
 	// 获取角色属性的辅助函数
 	float GetAttributeValue(const FGameplayAttribute& Attribute) const;
 };
