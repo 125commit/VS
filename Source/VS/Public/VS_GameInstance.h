@@ -29,11 +29,12 @@ struct FVSMatchResult
 	TArray<FVSOwnedAbilityInfo> MatchAbilities; // 局内抽到的所有技能与等级
 };
 
+
 // ==========================================================
 // 委托：用于通知全生命周期的系统（如局外商店UI）金币或物品变化
 // ==========================================================
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGlobalGoldChangedDelegate, int32, NewGold);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemPurchasedDelegate, FGameplayTag, ItemTag);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemLevelChangedDelegate, FGameplayTag, ItemTag, int32, NewLevel);
 
 UCLASS()
 class VS_API UVS_GameInstance : public UGameInstance
@@ -52,9 +53,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VS|Account")
 	int32 TotalGold = 0;
 
-	// 已购买的局外永久道具（天赋、角色等）
+	// 局外永久道具等级字典：Tag -> 当前等级
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VS|Account")
-	TArray<FGameplayTag> OwnedItems;
+	TMap<FGameplayTag, int32> ItemLevels;
 
 	// 最近一次战斗的战利品（切换关卡时存放在这里不死，结算 UI 随用随取）
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VS|Match")
@@ -68,7 +69,7 @@ public:
 	FOnGlobalGoldChangedDelegate OnGoldChangedDelegate;
 
 	UPROPERTY(BlueprintAssignable, Category = "VS|Delegates")
-	FOnItemPurchasedDelegate OnItemPurchasedDelegate;
+	FOnItemLevelChangedDelegate OnItemLevelChangedDelegate;
 
 	// ==========================================================
 	// 给 GM / PC 调用的傻瓜式接口 (自带自动落盘机制)
@@ -82,13 +83,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "VS|Account")
 	void AddTotalGold(int32 Amount);
 
-	// 解锁新物品并落盘
+	// 升级/解锁物品并落盘
 	UFUNCTION(BlueprintCallable, Category = "VS|Account")
-	void AddOwnedItem(FGameplayTag ItemTag);
+	void UpgradeItemLevel(FGameplayTag ItemTag);
 
-	// 检查是否已经拥有某物品
+	// 获取物品当前等级（0 代表未解锁）
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "VS|Account")
-	bool HasItem(FGameplayTag ItemTag) const;
+	int32 GetItemLevel(FGameplayTag ItemTag) const;
 
 	// 设置战利品快照
 	UFUNCTION(BlueprintCallable, Category = "VS|Match")

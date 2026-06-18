@@ -32,19 +32,23 @@ void UVS_GameInstance::AddTotalGold(int32 Amount)
 	}
 }
 
-void UVS_GameInstance::AddOwnedItem(FGameplayTag ItemTag)
+void UVS_GameInstance::UpgradeItemLevel(FGameplayTag ItemTag)
 {
-	if (!OwnedItems.Contains(ItemTag))
-	{
-		OwnedItems.AddUnique(ItemTag);
-		OnItemPurchasedDelegate.Broadcast(ItemTag); // 广播通知商店界面
-		SaveDataToDisk(); // 新物品落盘
-	}
+	int32 CurrentLevel = GetItemLevel(ItemTag);
+	int32 NewLevel = CurrentLevel + 1;
+	
+	ItemLevels.Add(ItemTag, NewLevel);
+	OnItemLevelChangedDelegate.Broadcast(ItemTag, NewLevel); // 广播通知商店界面
+	SaveDataToDisk(); // 新物品落盘
 }
 
-bool UVS_GameInstance::HasItem(FGameplayTag ItemTag) const
+int32 UVS_GameInstance::GetItemLevel(FGameplayTag ItemTag) const
 {
-	return OwnedItems.Contains(ItemTag);
+	if (const int32* FoundLevel = ItemLevels.Find(ItemTag))
+	{
+		return *FoundLevel;
+	}
+	return 0; // 0代表尚未解锁
 }
 
 void UVS_GameInstance::SetLastMatchResult(const FVSMatchResult& InResult)
@@ -63,8 +67,8 @@ void UVS_GameInstance::LoadDataFromDisk()
 		{
 			// 将存档数据灌入 GameInstance 内存
 			TotalGold = VSSave->SavedTotalGold;
-			OwnedItems = VSSave->SavedOwnedItems; // 读取已拥有的物品
-			UE_LOG(LogTemp, Log, TEXT("读取存档成功！当前金币: %d，已解锁物品数量: %d"), TotalGold, OwnedItems.Num());
+			ItemLevels = VSSave->SavedItemLevels; // 读取已拥有的物品等级
+			UE_LOG(LogTemp, Log, TEXT("读取存档成功！当前金币: %d，已解锁物品种类: %d"), TotalGold, ItemLevels.Num());
 			return;
 		}
 	}
@@ -81,10 +85,10 @@ void UVS_GameInstance::SaveDataToDisk()
 	{
 		// 把内存数据倒进空壳
 		VSSave->SavedTotalGold = this->TotalGold;
-		VSSave->SavedOwnedItems = this->OwnedItems; // 保存已拥有的物品
+		VSSave->SavedItemLevels = this->ItemLevels; // 保存已拥有的物品等级
 
 		// 落盘
 		UGameplayStatics::SaveGameToSlot(VSSave, DEFAULT_SLOT_NAME, 0);
-		UE_LOG(LogTemp, Log, TEXT("数据已自动落盘，最新金币: %d，已解锁物品: %d 个"), TotalGold, OwnedItems.Num());
+		UE_LOG(LogTemp, Log, TEXT("数据已自动落盘，最新金币: %d，已解锁物品: %d 个"), TotalGold, ItemLevels.Num());
 	}
 }
