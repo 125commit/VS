@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
@@ -29,5 +29,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "SaveData")
 	int32 SavedTotalGold = 0;
 
+	// 已解锁的道具/角色等标签
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "SaveData")
+	TArray<FGameplayTag> SavedOwnedItems;
+	
 	// 您可以随时在这里补充：比如已解锁角色、局外天赋等级字典等
 };

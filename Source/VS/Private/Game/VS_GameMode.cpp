@@ -1,4 +1,4 @@
-﻿#include "Game/VS_GameMode.h"
+#include "Game/VS_GameMode.h"
 #include "VS_GameInstance.h"
 #include "Player/VS_PlayerController.h"
 #include "Player/VS_PlayerState.h"
@@ -23,14 +23,21 @@ bool AVS_GameMode::ProcessItemPurchase(FGameplayTag ItemTag, AVS_PlayerControlle
 	int32 Price = ToolPriceData->GetPriceForTag(ItemTag);
 	if (Price <= 0) return false; // 找不到价格，或者免费，均阻止交易
 
-	// 2. 调用全自动银行 GameInstance 扣费存盘
 	if (UVS_GameInstance* GI = GetGameInstance<UVS_GameInstance>())
 	{
+		// 2. 查重：是否已经买过？
+		if (GI->HasItem(ItemTag))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("购买失败：已经拥有该物品"));
+			return false;
+		}
+
+		// 3. 扣费
 		bool bSuccess = GI->SpendGold(Price);
 		if (bSuccess)
 		{
-			// 购买成功，这里您可以处理具体的给玩家发东西逻辑
-			// 比如把这个 Tag 存进 GI 的已解锁名单里，等进入 GameMap 时发给玩家
+			// 4. 发货存盘
+			GI->AddOwnedItem(ItemTag);
 			UE_LOG(LogTemp, Log, TEXT("购买成功！花费 %d"), Price);
 			return true;
 		}

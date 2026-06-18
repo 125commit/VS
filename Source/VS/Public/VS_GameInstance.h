@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
@@ -29,6 +29,12 @@ struct FVSMatchResult
 	TArray<FVSOwnedAbilityInfo> MatchAbilities; // 局内抽到的所有技能与等级
 };
 
+// ==========================================================
+// 委托：用于通知全生命周期的系统（如局外商店UI）金币或物品变化
+// ==========================================================
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGlobalGoldChangedDelegate, int32, NewGold);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemPurchasedDelegate, FGameplayTag, ItemTag);
+
 UCLASS()
 class VS_API UVS_GameInstance : public UGameInstance
 {
@@ -46,21 +52,43 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VS|Account")
 	int32 TotalGold = 0;
 
+	// 已购买的局外永久道具（天赋、角色等）
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VS|Account")
+	TArray<FGameplayTag> OwnedItems;
+
 	// 最近一次战斗的战利品（切换关卡时存放在这里不死，结算 UI 随用随取）
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VS|Match")
 	FVSMatchResult LastMatchResult;
 
 	// ==========================================================
+	// 全局广播委托
+	// ==========================================================
+	
+	UPROPERTY(BlueprintAssignable, Category = "VS|Delegates")
+	FOnGlobalGoldChangedDelegate OnGoldChangedDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category = "VS|Delegates")
+	FOnItemPurchasedDelegate OnItemPurchasedDelegate;
+
+	// ==========================================================
 	// 给 GM / PC 调用的傻瓜式接口 (自带自动落盘机制)
 	// ==========================================================
 	
-	// 购买物品扣费，返回 true 即为余额充足购买成功
+	// 购买物品扣费，返回 true 即为余额充足且扣款成功
 	UFUNCTION(BlueprintCallable, Category = "VS|Account")
 	bool SpendGold(int32 Cost);
 
 	// 战斗结算加钱
 	UFUNCTION(BlueprintCallable, Category = "VS|Account")
 	void AddTotalGold(int32 Amount);
+
+	// 解锁新物品并落盘
+	UFUNCTION(BlueprintCallable, Category = "VS|Account")
+	void AddOwnedItem(FGameplayTag ItemTag);
+
+	// 检查是否已经拥有某物品
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "VS|Account")
+	bool HasItem(FGameplayTag ItemTag) const;
 
 	// 设置战利品快照
 	UFUNCTION(BlueprintCallable, Category = "VS|Match")
