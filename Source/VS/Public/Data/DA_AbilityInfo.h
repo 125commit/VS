@@ -36,8 +36,6 @@ struct FVSAbilityLevelRow
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	int32 ProjectileCount = 1;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
-	int32 PierceCount = 0;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	float ProjectileSpeed = 600.f;

@@ -17,31 +17,48 @@ UVSAbility_Whip::UVSAbility_Whip()
 
 void UVSAbility_Whip::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 {
-	if (!WhipActor || !GetAvatarActorFromActorInfo()) return;
-	
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	const FTransform& SpawningTransform = AvatarActor->GetTransform();
+	if (!WeaponActorClass || !AvatarActor) return;
+
+	//鞭子的数量
+	const int32 WhipCount = FMath::Max(1, Stats.ProjectileCount);
 	
-	AVS_WeaponActor* Whip = GetWorld()->SpawnActorDeferred<AVSWhipActor>(
-		WeaponActorClass,
-		SpawningTransform,
-		AvatarActor,
-		Cast<APawn>(AvatarActor),
-		ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-	);
+	//获取角色朝向的单位向量
+	FVector Forward = AvatarActor->GetActorForwardVector();
+	Forward.Z = 0.f;
+	Forward = Forward.GetSafeNormal();
 	
-	if (!Whip) return;
+	for (int32 i = 0; i < WhipCount; i++)
+	{
+		//设置Whhip朝向
+		FVector FacignDirection = (i % 2 == 0) ? Forward : -Forward;
+		const FRotator FacingRotation = FacignDirection.Rotation();
+		const FTransform SpawningTransform(FacingRotation, AvatarActor->GetActorLocation());
 	
-	FVSWeaponInitParams Params;
-	Params.Area = Stats.Area;
-	Params.Duration = Stats.Duration;
-	Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
-	Params.FacingRotation = AvatarActor->GetActorRotation();
+		//TODO：从对象池中获取
+		AVS_WeaponActor* Whip = GetWorld()->SpawnActorDeferred<AVSWhipActor>(
+			WeaponActorClass,
+			SpawningTransform,
+			AvatarActor,
+			Cast<APawn>(AvatarActor),
+			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+		);
+		
+		if (!Whip) continue;
 	
-	Whip->InitFromParams(Params);
+		FVSWeaponInitParams Params;
+		Params.Area = Stats.Area;
+		Params.Duration = Stats.Duration;
+		Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
+		Params.FacingRotation = FacingRotation;
 	
-	//done
-	Whip->FinishSpawning(SpawningTransform);
+		Whip->InitFromParams(Params);
+	
+		//done
+		Whip->FinishSpawning(SpawningTransform);
+	}
+	
+	
 	
 }
 

@@ -83,7 +83,7 @@ void AVS_WeaponActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, A
 	if (!HasAuthority() || !OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
 	
 	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
-	if (!Enemy || !Enemy->IsDead() || WeaponDamage < 0.f) return;
+	if (!Enemy || Enemy->IsDead() || WeaponDamage < 0.f) return;
 	
 	UGameplayStatics::ApplyDamage(
 		Enemy,

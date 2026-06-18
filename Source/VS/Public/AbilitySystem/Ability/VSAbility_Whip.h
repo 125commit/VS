@@ -20,9 +20,6 @@ public:
 	
 protected:
 	virtual void ExecuteFire(const FVSAbilityRuntimeStats& Stats) override;
-	
-	// 设计师在蓝图里配置：要生成的武器实体类 (如：大蒜Actor、神鞭Actor)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Weapon")
-	TSubclassOf<AVSWhipActor> WhipActor;
+
 
 };
