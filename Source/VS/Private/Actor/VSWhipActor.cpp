@@ -38,7 +38,8 @@ void AVSWhipActor::BeginPlay()
 
 	if (HasAuthority() && WhipCollision)
 	{
-		WhipCollision->OnComponentBeginOverlap.AddDynamic(this, &AVS_WeaponActor::OnOverlapBegin);
+		WhipCollision->OnComponentBeginOverlap.AddDynamic(this, &AVSWhipActor::OnOverlapBegin);
+		WhipCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 	
 	// 已经在范围内的Actor不会触发OnOverlapBegin，所以要补判
