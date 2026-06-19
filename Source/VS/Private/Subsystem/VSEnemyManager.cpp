@@ -98,6 +98,7 @@ void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
 
 	if (UDA_EnemyDropTable* DropTable = Enemy->GetDropTable())
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
 		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
 	}
 	ReturnEnemiesToPool(Enemy);

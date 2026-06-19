@@ -41,38 +41,12 @@ void UVS_WeaponAbility::OnWeaponFire()
 
 void UVS_WeaponAbility::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 {
-	//给空的技能子类用
-	//TODO：子类都做完之后可以删除它
-	if (!WeaponActorClass || !GetAvatarActorFromActorInfo()) return;
 	
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	const FTransform& SpawningTransform = AvatarActor->GetTransform();
-	
-	AVS_WeaponActor* Weapon = GetWorld()->SpawnActorDeferred<AVS_WeaponActor>(
-		WeaponActorClass,
-		SpawningTransform,
-		AvatarActor,
-		Cast<APawn>(AvatarActor),
-		ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-	);
-	
-	if (!Weapon) return;
-	
-	FVSWeaponInitParams Params;
-	Params.Area = Stats.Area;
-	Params.Duration = Stats.Duration;
-	Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
-	Params.FacingRotation = AvatarActor->GetActorRotation();
-	
-	Weapon->InitFromParams(Params);
-	
-	//done
-	Weapon->FinishSpawning(SpawningTransform);
 }
 
 float UVS_WeaponAbility::ComputeFinalDamage(float BaseDamage) const
 {
-	const float Might = GetAttributeValue(UVS_AttributeSet::GetBaseDamageAttribute());
+	const float Might = GetAttributeValue(UVS_AttributeSet::GetMightAttribute());
 	return BaseDamage * Might;
 }
 

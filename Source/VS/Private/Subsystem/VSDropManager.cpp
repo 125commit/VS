@@ -9,6 +9,7 @@
 #include "Data/Subsystem/DA_DropItems.h"
 #include "Data/Subsystem/DA_EnemyDropTable.h"
 
+
 void UVSDropManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -99,6 +100,7 @@ void UVSDropManager::TryPickUp(float DeltaTime)
 	AVS_PlayerState* PlayerState = PlayerPawn->GetPlayerState<AVS_PlayerState>();
 	if (!PlayerState) return;
 
+	
 	const FVector PlayerLoc = PlayerPawn->GetActorLocation();
 
 	const float CurrentMagnetRadiusSq = GetPlayerMagnetRadiusSq(PlayerPawn);
@@ -117,7 +119,7 @@ void UVSDropManager::TryPickUp(float DeltaTime)
 
 		if (DistSq <= PickupSq)
 		{
-			HandleColletingDrop(Drop, PlayerState);
+			HandleCollectingDrop(Drop, PlayerState);
 			continue;
 		}
 
@@ -134,7 +136,7 @@ void UVSDropManager::TryPickUp(float DeltaTime)
 	}
 }
 
-void UVSDropManager::HandleColletingDrop(AVSDropItem* DropItem, AVS_PlayerState* PlayerState)
+void UVSDropManager::HandleCollectingDrop(AVSDropItem* DropItem, AVS_PlayerState* PlayerState)
 {
 	if (!DropItem || !DropPool || !PlayerState) return;
 	switch (DropItem->GetDropType())
@@ -142,6 +144,7 @@ void UVSDropManager::HandleColletingDrop(AVSDropItem* DropItem, AVS_PlayerState*
 	case EVSDropType::XPSmall:
 	case EVSDropType::XPLarge:
 		PlayerState->AddXP(DropItem->GetDropValue());
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Get XP: [%f]"), DropItem->GetDropValue()));
 		break;
 
 	case EVSDropType::Gold:
