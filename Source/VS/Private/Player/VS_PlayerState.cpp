@@ -55,6 +55,9 @@ void AVS_PlayerState::AddXP(float BaseXP)
 	if (LevelUpInfo)
 	{
 		int32 TargetLevel = LevelUpInfo->FindLevelForXP(XP); 
+		// 记录一下增加经验前的待升级次数
+		int32 OldPending = PendingLevelUps; 
+
 		
 		while (Level < TargetLevel)
 		{
@@ -65,7 +68,8 @@ void AVS_PlayerState::AddXP(float BaseXP)
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Current Level: %i"), Level));
 		}
 
-		if (PendingLevelUps > 0)
+		//只有当原本没有升级队列，且现在有了升级队列时，才呼叫弹窗
+		if (OldPending == 0 && PendingLevelUps > 0)
 		{
 			// 通知 PlayerController 弹窗升级界面
 			if (AVS_PlayerController* PC = Cast<AVS_PlayerController>(GetOwner()))
