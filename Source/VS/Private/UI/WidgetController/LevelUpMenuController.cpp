@@ -2,6 +2,7 @@
 
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "Player/VS_PlayerController.h"
+#include "Player/VS_PlayerState.h"
 
 void ULevelUpMenuController::BroadcastInitialValues()
 {
@@ -10,6 +11,7 @@ void ULevelUpMenuController::BroadcastInitialValues()
 	{
 		OnLevelUpOptionsChanged.Broadcast(CachedCardInfos);
 	}
+	BroadcastRerollCount();
 }
 
 void ULevelUpMenuController::BindCallbacksToDependencies()
@@ -30,7 +32,9 @@ void ULevelUpMenuController::SetSkillOptions(const TArray<FVSAbilityInfo>& InOpt
 		CachedCardInfos.Add(BuildCardInfo(OptionInfo));
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("LevelUpMenuController broadcasting %d card infos."), CachedCardInfos.Num());
 	OnLevelUpOptionsChanged.Broadcast(CachedCardInfos);
+	BroadcastRerollCount();
 }
 
 void ULevelUpMenuController::SelectUpgrade(FGameplayTag SelectedTag)
@@ -53,6 +57,23 @@ void ULevelUpMenuController::RerollUpgrade()
 	{
 		VSPC->Server_RerollUpgrade();
 	}
+	BroadcastRerollCount();
+}
+
+int32 ULevelUpMenuController::GetRemainingRerollCount()
+{
+	if (AVS_PlayerState* VSPS = GetVSPS())
+	{
+		return VSPS->GetRerollCount();
+	}
+
+	return 0;
+}
+
+void ULevelUpMenuController::BroadcastRerollCount()
+{
+	// PlayerState owns the count; this controller only exposes it to the level-up widget.
+	OnRerollCountChanged.Broadcast(GetRemainingRerollCount());
 }
 
 FVSLevelUpCardInfo ULevelUpMenuController::BuildCardInfo(const FVSAbilityInfo& InAbilityInfo)

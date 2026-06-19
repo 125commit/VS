@@ -33,6 +33,7 @@ struct FVSLevelUpCardInfo
 
 // Broadcasts the latest level-up card list to WBP_LevelUpScreen.
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVSLevelUpOptionsChangedSignature, const TArray<FVSLevelUpCardInfo>&, CardInfos);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FVSRerollCountChangedSignature, int32, RerollCount);
 
 UCLASS(BlueprintType, Blueprintable)
 class VS_API ULevelUpMenuController : public UVS_WidgetController
@@ -58,12 +59,19 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "VS|LevelUp")
 	FVSLevelUpOptionsChangedSignature OnLevelUpOptionsChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "VS|LevelUp")
+	FVSRerollCountChangedSignature OnRerollCountChanged;
+
+	UFUNCTION(BlueprintPure, Category = "VS|LevelUp")
+	int32 GetRemainingRerollCount();
+
 protected:
 	// Cache the latest generated card data so late-bound widgets can request an immediate replay.
 	UPROPERTY(BlueprintReadOnly, Category = "VS|LevelUp")
 	TArray<FVSLevelUpCardInfo> CachedCardInfos;
 
 private:
+	void BroadcastRerollCount();
 	FVSLevelUpCardInfo BuildCardInfo(const FVSAbilityInfo& InAbilityInfo);
 	int32 GetCurrentLevelForAbilityTag(const FGameplayTag& AbilityTag);
 	FText GetDescriptionForLevel(const FVSAbilityInfo& InAbilityInfo, int32 Level);

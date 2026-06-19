@@ -18,6 +18,8 @@ class VS_API AVS_HUD : public AHUD
 	GENERATED_BODY()
 
 public:
+	AVS_HUD();
+
 	UVS_OverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
 	ULevelUpMenuController* GetLevelUpMenuController(const FWidgetControllerParams& WCParams);
 	class UVS_BoxMenuController* GetBoxMenuController(const FWidgetControllerParams& WCParams);
@@ -25,8 +27,12 @@ public:
 
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
 
+protected:
+	virtual void BeginPlay() override;
+
 private:
 	// C++ 绑定的底层中继回调
+	void BindPlayerControllerDelegates(APlayerController* PC);
 	void OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions);
 	void OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill);
 	void OnShowPauseMenu();
@@ -52,6 +58,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "VS|UI")
 	TSubclassOf<UVS_UserWidget> LevelUpWidgetClass;
+
+	bool bHasBoundPlayerControllerDelegates = false;
 
 	UPROPERTY()
 	TObjectPtr<ULevelUpMenuController> LevelUpMenuController;

@@ -4,10 +4,48 @@
 #include "UI/Widget/VS_UserWidget.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "Player/VS_PlayerController.h"
+#include "UObject/ConstructorHelpers.h"
 
 #include "UI/WidgetController/LevelUpMenuController.h"
 #include "UI/WidgetController/VS_BoxMenuController.h"
 #include "UI/WidgetController/VS_PauseMenuController.h"
+
+AVS_HUD::AVS_HUD()
+{
+	LevelUpMenuControllerClass = ULevelUpMenuController::StaticClass();
+
+	// The project currently uses VS_HUD directly, so provide the level-up widget class from C++.
+	static ConstructorHelpers::FClassFinder<UVS_UserWidget> LevelUpWidgetBP(TEXT("/Game/Blueprint/UI/WBP_LevelUpScreen"));
+	if (LevelUpWidgetBP.Succeeded())
+	{
+		LevelUpWidgetClass = LevelUpWidgetBP.Class;
+	}
+}
+
+void AVS_HUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	BindPlayerControllerDelegates(GetOwningPlayerController());
+}
+
+void AVS_HUD::BindPlayerControllerDelegates(APlayerController* PC)
+{
+	if (bHasBoundPlayerControllerDelegates)
+	{
+		return;
+	}
+
+	if (AVS_PlayerController* VSPC = Cast<AVS_PlayerController>(PC))
+	{
+		// Level-up/chest/pause are broadcast by the PlayerController; HUD owns the matching pop-up widgets.
+		VSPC->OnShowLevelUpMenuDelegate.AddUObject(this, &AVS_HUD::OnShowLevelUpMenu);
+		VSPC->OnShowChestMenuDelegate.AddUObject(this, &AVS_HUD::OnShowChestMenu);
+		VSPC->OnShowPauseMenuDelegate.AddUObject(this, &AVS_HUD::OnShowPauseMenu);
+
+		bHasBoundPlayerControllerDelegates = true;
+	}
+}
 
 UVS_OverlayWidgetController* AVS_HUD::GetOverlayWidgetController(const FWidgetControllerParams& WCParams)
 {
@@ -71,18 +109,14 @@ void AVS_HUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyste
 	// ==========================================================
 	// 绑定 PC 的三大原生广播
 	// ==========================================================
-	if (AVS_PlayerController* VSPC = Cast<AVS_PlayerController>(PC))
-	{
-		VSPC->OnShowLevelUpMenuDelegate.AddUObject(this, &AVS_HUD::OnShowLevelUpMenu);
-		VSPC->OnShowChestMenuDelegate.AddUObject(this, &AVS_HUD::OnShowChestMenu);
-		VSPC->OnShowPauseMenuDelegate.AddUObject(this, &AVS_HUD::OnShowPauseMenu);
-	}
+	BindPlayerControllerDelegates(PC);
 }
 
 void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 {
 	checkf(LevelUpWidgetClass, TEXT("LevelUp Widget Class uninitialized, please fill out BP_VS_HUD"));
 	checkf(LevelUpMenuControllerClass, TEXT("LevelUp Menu Controller Class uninitialized, please fill out BP_VS_HUD"));
+	UE_LOG(LogTemp, Warning, TEXT("VS_HUD opening level-up menu with %d skill options."), SkillOptions.Num());
 
 	if (LevelUpWidget == nullptr)
 	{
@@ -90,14 +124,20 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 		LevelUpWidget = Cast<UVS_UserWidget>(Widget);
 	}
 
+	if (LevelUpWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("VS_HUD failed to create WBP_LevelUpScreen. Check widget path and parent class."));
+		return;
+	}
+
 	APlayerController* PC = GetOwningPlayerController();
 	APlayerState* PS = PC ? PC->PlayerState : nullptr;
 	const FWidgetControllerParams WCParams(PC, PS, nullptr, nullptr);
 
 	ULevelUpMenuController* WidgetController = GetLevelUpMenuController(WCParams);
-	WidgetController->SetSkillOptions(SkillOptions);
-
+	// Give the widget its controller before broadcasting options so Blueprint event bindings are ready.
 	LevelUpWidget->SetWidgetController(WidgetController);
+	WidgetController->SetSkillOptions(SkillOptions);
 	WidgetController->BroadcastInitialValues();
 	LevelUpWidget->AddToViewport();
 }
