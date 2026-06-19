@@ -53,7 +53,8 @@ USTRUCT(BlueprintType)
 struct FVSAbilityRuntimeStats
 {
 	GENERATED_BODY()
-	// 表值，不在此乘 Might；最终伤害由 ExecutionCalculation 处理
+	
+	// 表值
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
 	float BaseDamage = 0.f;
 	

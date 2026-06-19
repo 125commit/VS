@@ -5,6 +5,7 @@
 #include "VSGameplayTags.h"
 #include "Actor/VSWhipActor.h"
 #include "Data/DA_AbilityInfo.h"
+#include "Subsystem/VSWeaponSubsysem.h"
 
 UVSAbility_Whip::UVSAbility_Whip()
 {
@@ -17,9 +18,11 @@ UVSAbility_Whip::UVSAbility_Whip()
 
 void UVSAbility_Whip::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 {
+	UWorld* World = GetWorld();
+	UVSWeaponSubsysem* WeaponSubsystem = World->GetSubsystem<UVSWeaponSubsysem>();
 	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!WeaponActorClass || !AvatarActor) return;
-
+	if (!WeaponActorClass || !AvatarActor || !WeaponSubsystem || !World) return;
+	
 	//鞭子的数量
 	const int32 WhipCount = FMath::Max(1, Stats.ProjectileCount);
 	
@@ -30,32 +33,22 @@ void UVSAbility_Whip::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 	
 	for (int32 i = 0; i < WhipCount; i++)
 	{
-		//设置Whhip朝向
-		FVector FacignDirection = (i % 2 == 0) ? Forward : -Forward;
-		const FRotator FacingRotation = FacignDirection.Rotation();
+		//设置Whip朝向
+		FVector FacingDirection = (i % 2 == 0) ? Forward : -Forward;
+		const FRotator FacingRotation = FacingDirection.Rotation();
 		const FTransform SpawningTransform(FacingRotation, AvatarActor->GetActorLocation());
-	
-		//TODO：从对象池中获取
-		AVS_WeaponActor* Whip = GetWorld()->SpawnActorDeferred<AVSWhipActor>(
-			WeaponActorClass,
-			SpawningTransform,
-			AvatarActor,
-			Cast<APawn>(AvatarActor),
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-		);
-		
-		if (!Whip) continue;
 	
 		FVSWeaponInitParams Params;
 		Params.Area = Stats.Area;
 		Params.Duration = Stats.Duration;
 		Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
 		Params.FacingRotation = FacingRotation;
-	
-		Whip->InitFromParams(Params);
-	
-		//done
-		Whip->FinishSpawning(SpawningTransform);
+		
+		WeaponSubsystem->SpawnWeaponFromPool(
+			WeaponActorClass,
+			SpawningTransform,
+			AvatarActor,
+			Params);
 	}
 	
 	
