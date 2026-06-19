@@ -75,4 +75,10 @@ void FVSGameplayTags::InitializeNativeGameplayTags()
 		FName("Abilities.Passive.Spinach"),
 		FString("被动：菠菜 (伤害加成)")
 	);
+	
+	GameplayTags.Damage = Manager.AddNativeGameplayTag(
+		FName("Damage"),
+		FString("造成伤害")
+	);
+	
 }

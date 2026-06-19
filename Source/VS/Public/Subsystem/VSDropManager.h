@@ -29,7 +29,7 @@ public:
 	void TryPickUp(float DeltaTime);
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Drop")
+	UPROPERTY()
 	TObjectPtr<UDA_DropItems> DropSettings;
 
 	UPROPERTY()
@@ -43,7 +43,7 @@ private:
 
 	float GetPlayerMagnetRadiusSq(const APawn* PlayerPawn);
 	float GetPlayerPickupRadiusSq();
-	void HandleColletingDrop(AVSDropItem* DropItem, AVS_PlayerState* PlayerState);
+	void HandleCollectingDrop(AVSDropItem* DropItem, AVS_PlayerState* PlayerState);
 
 	float MagnetRadius = 100.f;
 	float MagnetRadiusSq = 10000.f;

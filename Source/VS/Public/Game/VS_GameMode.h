@@ -1,23 +1,24 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "GameplayTagContainer.h"
-#include "Data/DA_ToolPrice.h"
+#include "Data/DA_ToolInfo.h"
 #include "VS_GameMode.generated.h"
 
+class UDA_ToolInfo;
 class AVS_PlayerController;
 
 UCLASS()
-class VS_API AVS_GameMode : public AGameModeBase
+class VS_API AVS_GameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
 
-	// 策划配表：在蓝图 GM 中选择配好的 DA_ToolPrice 资产
+	// 策划配表：在蓝图 GM 中选择配好的 DA_ToolInfo 资产
 	UPROPERTY(EditDefaultsOnly, Category = "VS|Store")
-	TObjectPtr<UDA_ToolPrice> ToolPriceData;
+	TObjectPtr<UDA_ToolInfo> ToolPriceData;
 
 	// ==========================================================
 	// PC 交互接口：主菜单与购买

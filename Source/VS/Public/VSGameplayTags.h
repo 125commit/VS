@@ -36,6 +36,8 @@ public:
 	FGameplayTag Abilities_Passive_EmptyTome;   // 空白之书
 	FGameplayTag Abilities_Passive_Spinach;     // 菠菜
 	
+	FGameplayTag Damage;
+	
 protected:
 	static FVSGameplayTags GameplayTags;
 };

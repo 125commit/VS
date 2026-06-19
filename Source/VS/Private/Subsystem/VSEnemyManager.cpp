@@ -57,8 +57,9 @@ AActor* UVSEnemyManager::SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, co
 	AActor* NewEnemy = EnemyPool->GetActorFromPool(GetWorld(), EnemyClass, Location, FRotator::ZeroRotator);
 	if (!NewEnemy || ActiveEnemies.Contains(NewEnemy)) return NewEnemy;
 
-	if (Cast<AVSEnemy>(NewEnemy))
+	if (AVSEnemy* VSEnemy = Cast<AVSEnemy>(NewEnemy))
 	{
+		VSEnemy->ResetForSpawn();
 		ActiveEnemies.Add(NewEnemy);
 	}
 	else
@@ -97,8 +98,10 @@ void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
 
 	if (UDA_EnemyDropTable* DropTable = Enemy->GetDropTable())
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
 		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
 	}
+	ReturnEnemiesToPool(Enemy);
 }
 
 void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
@@ -110,17 +113,19 @@ void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
 
 	const FVector PlayerLoc = Player->GetActorLocation();
 
-	for (AActor* EnemyActor : ActiveEnemies)
+	//避免遍历时把敌人放回池中(死亡)，所以先创建一个本地副本
+	const TArray<AActor*> EnemiesSnapshot = ActiveEnemies;
+	for (AActor* EnemyActor : EnemiesSnapshot)
 	{
 		AVSEnemy* Enemy = Cast<AVSEnemy>(EnemyActor);
-		if (!Enemy) continue;
+		if (!Enemy || Enemy->IsDead()) continue;
 
 		const float DistanceSq = FVector::DistSquared(PlayerLoc, Enemy->GetActorLocation());
 
 		if (DistanceSq <= AttackRadiusSq)
 		{
 			Enemy->SetVisualSpeed(0.f);
-			//TODO:造成伤害
+			//TODO:对玩家造成伤害
 		}
 		else
 		{

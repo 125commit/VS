@@ -29,8 +29,15 @@ void AVSDropItem::ActivateDrop(EVSDropType InDropType, float InValue)
 	DropValue = FMath::Max(0.f, InValue);
 	bIsActive = true;
 	
-	if (!DropMeshComponent) return;
 	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	
+	if (DropMeshComponent)
+	{
+		DropMeshComponent->SetVisibility(true);
+		DropMeshComponent->SetHiddenInGame(false);
+		DropMeshComponent->MarkRenderStateDirty();
+	}
 }
 
 void AVSDropItem::DeActivateDrop()

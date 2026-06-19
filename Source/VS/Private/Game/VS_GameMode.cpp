@@ -1,4 +1,4 @@
-﻿#include "Game/VS_GameMode.h"
+#include "Game/VS_GameMode.h"
 #include "VS_GameInstance.h"
 #include "Player/VS_PlayerController.h"
 #include "Player/VS_PlayerState.h"
@@ -19,19 +19,38 @@ bool AVS_GameMode::ProcessItemPurchase(FGameplayTag ItemTag, AVS_PlayerControlle
 {
 	if (!ToolPriceData || !PC) return false;
 
-	// 1. 查价格
-	int32 Price = ToolPriceData->GetPriceForTag(ItemTag);
-	if (Price <= 0) return false; // 找不到价格，或者免费，均阻止交易
-
-	// 2. 调用全自动银行 GameInstance 扣费存盘
 	if (UVS_GameInstance* GI = GetGameInstance<UVS_GameInstance>())
 	{
+		// 1. 获取物品配置信息
+		const FMetaItemInfo* ItemInfo = ToolPriceData->GetMetaItemInfo(ItemTag);
+		if (!ItemInfo || ItemInfo->LevelPrices.IsEmpty())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("购买失败：物品未配置或没有价格数据"));
+			return false;
+		}
+
+		// 2. 查当前等级
+		int32 CurrentLevel = GI->GetItemLevel(ItemTag);
+		int32 MaxLevel = ItemInfo->LevelPrices.Num();
+
+		// 3. 拦截：是否已满级？
+		if (CurrentLevel >= MaxLevel)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("购买失败：已经达到最大等级！"));
+			return false;
+		}
+
+		// 4. 查当前等级所需的升级费用
+		int32 Price = ItemInfo->LevelPrices[CurrentLevel];
+		if (Price <= 0) return false;
+
+		// 5. 扣费
 		bool bSuccess = GI->SpendGold(Price);
 		if (bSuccess)
 		{
-			// 购买成功，这里您可以处理具体的给玩家发东西逻辑
-			// 比如把这个 Tag 存进 GI 的已解锁名单里，等进入 GameMap 时发给玩家
-			UE_LOG(LogTemp, Log, TEXT("购买成功！花费 %d"), Price);
+			// 6. 发货存盘 (等级+1)
+			GI->UpgradeItemLevel(ItemTag);
+			UE_LOG(LogTemp, Log, TEXT("升级成功！升至 %d 级，花费 %d"), CurrentLevel + 1, Price);
 			return true;
 		}
 	}

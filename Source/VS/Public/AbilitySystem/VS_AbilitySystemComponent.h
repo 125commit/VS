@@ -9,7 +9,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FVSOwnedAbilityInfo
 {
 	GENERATED_BODY()
@@ -37,9 +37,9 @@ public:
 	// 赋予玩家初始武器/被动 (通常是角色天生自带的那个武器)
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
 
-	// 客户端在升级选卡菜单选中某个武器后，呼叫服务器
+	// 客户端在升级选卡菜单选中某个技能后，呼叫服务器
 	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void ServerUpgradeWeapon(TSubclassOf<UGameplayAbility> WeaponAbilityClass);
+	void ServerUpgradeAbility(TSubclassOf<UGameplayAbility> WeaponAbilityClass);
 
 	// -----------------------------------------------------------------
 	// 委托与防火墙标志位

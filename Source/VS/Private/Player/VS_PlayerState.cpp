@@ -1,6 +1,6 @@
 #include "Player/VS_PlayerState.h"
 #include "Player/VS_PlayerController.h" // 引入 PC
-#include "AbilitySystemComponent.h"
+#include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Data/DA_LevelUpInfo.h"
 #include "Net/UnrealNetwork.h"
@@ -9,7 +9,11 @@ AVS_PlayerState::AVS_PlayerState()
 {
 	SetNetUpdateFrequency(100.f);
 
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
+	// 初始化等级为 1，防止开局 0 经验时瞬间触发升级导致整个游戏暂停死锁！
+	Level = 1;
+	XP = 0.f;
+
+	AbilitySystemComponent = CreateDefaultSubobject<UVS_AbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
@@ -45,11 +49,15 @@ void AVS_PlayerState::AddXP(float BaseXP)
 
 	// 2. 累加绝对总经验
 	XP += BaseXP * GreedMultiplier;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Total XP: %f"), XP));
 
 	// 3. 判定升级
 	if (LevelUpInfo)
 	{
 		int32 TargetLevel = LevelUpInfo->FindLevelForXP(XP); 
+		// 记录一下增加经验前的待升级次数
+		int32 OldPending = PendingLevelUps; 
+
 		
 		while (Level < TargetLevel)
 		{
@@ -57,9 +65,11 @@ void AVS_PlayerState::AddXP(float BaseXP)
 			PendingLevelUps++;
 			
 			OnLevelChangedDelegate.Broadcast(Level);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Current Level: %i"), Level));
 		}
 
-		if (PendingLevelUps > 0)
+		//只有当原本没有升级队列，且现在有了升级队列时，才呼叫弹窗
+		if (OldPending == 0 && PendingLevelUps > 0)
 		{
 			// 通知 PlayerController 弹窗升级界面
 			if (AVS_PlayerController* PC = Cast<AVS_PlayerController>(GetOwner()))
@@ -123,6 +133,7 @@ void AVS_PlayerState::CalculateAndBroadcastXPProgress()
 	XPPercent = FMath::Clamp(XPPercent, 0.f, 1.f);
 	OnXPPercentChangedDelegate.Broadcast(XPPercent);
 }
+
 void AVS_PlayerState::OnRep_Level(int32 OldLevel)
 {
 	int32 TempLevel = OldLevel;
