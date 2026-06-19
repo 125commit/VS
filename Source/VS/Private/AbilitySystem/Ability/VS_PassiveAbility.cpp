@@ -52,14 +52,7 @@ void UVS_PassiveAbility::ApplyPassiveEffect()
 	float PassiveValue = 0.0f;
 	if (GlobalAbilityInfoData)
 	{
-		FVSAbilityInfo Info = GlobalAbilityInfoData->FindAbilityInfoForTag(AbilityTag);
-		int32 CurrentLevel = GetAbilityLevel();
-		
-		// 防越界：数组索引从0开始，Level从1开始
-		if (Info.LevelDamages.IsValidIndex(CurrentLevel - 1))
-		{
-			PassiveValue = Info.LevelDamages[CurrentLevel - 1];
-		}
+		PassiveValue = GlobalAbilityInfoData->GetPassiveMagnitude(AbilityTag, GetAbilityLevel());
 	}
 
 	// 3. 构建新的 GE，将数值通过 SetByCaller 塞进去

@@ -82,9 +82,8 @@ public:
 	FGameplayAttributeData GreedMultiplier;
 	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, GreedMultiplier);
 	
+	
 	/* -------------------- 网络回调声明 -------------------- */
-	
-	
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
 	UFUNCTION()

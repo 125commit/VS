@@ -46,7 +46,7 @@ void UVS_AbilitySystemComponent::ServerUpgradeAbility_Implementation(TSubclassOf
 		// 强制同步脏数据到客户端
 		MarkAbilitySpecDirty(*ExistingSpec);
 		
-		// 发送升级事件，让被动技能刷新属性
+		// TODO:发送升级事件，让被动技能刷新属性
 		FGameplayEventData Payload;
 		Payload.EventTag = FGameplayTag::RequestGameplayTag(FName("Ability.Upgrade"));
 		Payload.EventMagnitude = ExistingSpec->Level;

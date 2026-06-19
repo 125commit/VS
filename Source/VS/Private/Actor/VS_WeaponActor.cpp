@@ -9,19 +9,14 @@
 
 AVS_WeaponActor::AVS_WeaponActor()
 {
-	PrimaryActorTick.bCanEverTick = false;
-
-	// 1. 创建碰撞体作为根节点
-	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
-	SetRootComponent(CollisionSphere);
+	SphereCollision = CreateDefaultSubobject<USphereComponent>("SphereCollisionComponent");
+	SetRootComponent(SphereCollision);
 	
-	// 碰撞预设：默认只触发 Overlap
-	CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	CollisionSphere->SetCollisionResponseToAllChannels(ECR_Ignore);
-	CollisionSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
-	// 2. 创建 Niagara 特效并附着在碰撞体上
-	WeaponEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("WeaponEffect"));
+	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SphereCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	SphereCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	
+	WeaponEffect = CreateDefaultSubobject<UNiagaraComponent>("WeaponEffect");
 	WeaponEffect->SetupAttachment(RootComponent);
 }
 
@@ -29,46 +24,72 @@ void AVS_WeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// 仅在服务端绑定重叠事件，保证伤害判定的权威性
-	if (HasAuthority())
+	if (!HasAuthority()) return;
+	
+	if (SphereCollision)
 	{
-		CollisionSphere->OnComponentBeginOverlap.AddDynamic(this, &AVS_WeaponActor::OnOverlapBegin);
+		SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AVS_WeaponActor::OnOverlapBegin);
 	}
+	
+	// 敌人在鞭击生成前已站在范围内时，OverlapBegin 不会触发，需补判
+	SweepInitialOverlaps();
 }
+
+void AVS_WeaponActor::SweepInitialOverlaps()
+{
+	if (!SphereCollision) return;
+	
+	TArray<AActor*> OverlappingActors;
+	SphereCollision->GetOverlappingActors(OverlappingActors);
+	
+	for (AActor* OverlappingActor : OverlappingActors)
+	{
+		OnOverlapBegin(SphereCollision, OverlappingActor, nullptr, INDEX_NONE, false, FHitResult());
+	}
+	
+}
+
 
 void AVS_WeaponActor::InitWeapon(float InArea, float InDuration, float InDamage)
 {
-	WeaponDamage = InDamage;
+	FVSWeaponInitParams WeaponInitParams;
+	WeaponInitParams.Area = InArea;
+	WeaponInitParams.Duration = InDuration;
+	WeaponInitParams.Damage = InDamage;
+	
+	InitFromParams(WeaponInitParams);
+	
+}
 
-	// 1. 缩放范围 (Area)
-	// 由于特效附着在碰撞体上，缩放 Root 会让两者一起同步缩放
-	SetActorScale3D(FVector(InArea));
+void AVS_WeaponActor::InitFromParams(const FVSWeaponInitParams& InitParams)
+{
+	WeaponDamage = InitParams.Damage;
 
-	// 2. 生命倒计时 (Duration)
-	if (InDuration > 0.f)
+	SetActorScale3D(FVector(InitParams.Area));
+	
+	if (InitParams.Duration > 0.f)
 	{
-		SetLifeSpan(InDuration); // 引擎自带自毁函数
+		SetLifeSpan(InitParams.Duration);
+	}
+	else
+	{
+		SetLifeSpan(0.15f);
 	}
 }
 
-void AVS_WeaponActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AVS_WeaponActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 排除自身和发射者(主角)
-	if (!OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
-
-	// 过滤：只对 VSEnemy 造成伤害
-	if (Cast<AVSEnemy>(OtherActor))
-	{
-		if (WeaponDamage > 0.f)
-		{
-			// 不再使用 GE，直接使用内置 ApplyDamage
-			UGameplayStatics::ApplyDamage(
-				OtherActor, 
-				WeaponDamage, 
-				GetInstigatorController(), 
-				this, 
-				UDamageType::StaticClass()
-			);
-		}
-	}
+	if (!HasAuthority() || !OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+	
+	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
+	if (!Enemy || Enemy->IsDead() || WeaponDamage < 0.f) return;
+	
+	UGameplayStatics::ApplyDamage(
+		Enemy,
+		WeaponDamage,
+		GetInstigatorController(),
+		this,
+		UDamageType::StaticClass()
+	);
 }
