@@ -8,6 +8,7 @@
 class UAttributeSet;
 class UAbilitySystemComponent;
 class UVS_OverlayWidgetController;
+class ULevelUpMenuController;
 class UVS_UserWidget;
 struct FWidgetControllerParams;
 
@@ -18,7 +19,7 @@ class VS_API AVS_HUD : public AHUD
 
 public:
 	UVS_OverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
-	class UVS_LevelUpMenuController* GetLevelUpMenuController(const FWidgetControllerParams& WCParams);
+	ULevelUpMenuController* GetLevelUpMenuController(const FWidgetControllerParams& WCParams);
 	class UVS_BoxMenuController* GetBoxMenuController(const FWidgetControllerParams& WCParams);
 	class UVS_PauseMenuController* GetPauseMenuController(const FWidgetControllerParams& WCParams);
 
@@ -53,10 +54,10 @@ private:
 	TSubclassOf<UVS_UserWidget> LevelUpWidgetClass;
 
 	UPROPERTY()
-	TObjectPtr<UVS_LevelUpMenuController> LevelUpMenuController;
+	TObjectPtr<ULevelUpMenuController> LevelUpMenuController;
 
 	UPROPERTY(EditAnywhere, Category = "VS|UI")
-	TSubclassOf<UVS_LevelUpMenuController> LevelUpMenuControllerClass;
+	TSubclassOf<ULevelUpMenuController> LevelUpMenuControllerClass;
 
 	UPROPERTY()
 	TObjectPtr<UVS_UserWidget> BoxWidget;

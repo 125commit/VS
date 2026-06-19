@@ -5,7 +5,7 @@
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "Player/VS_PlayerController.h"
 
-#include "UI/WidgetController/VS_LevelUpMenuController.h"
+#include "UI/WidgetController/LevelUpMenuController.h"
 #include "UI/WidgetController/VS_BoxMenuController.h"
 #include "UI/WidgetController/VS_PauseMenuController.h"
 
@@ -20,11 +20,11 @@ UVS_OverlayWidgetController* AVS_HUD::GetOverlayWidgetController(const FWidgetCo
 	return OverlayWidgetController;
 }
 
-UVS_LevelUpMenuController* AVS_HUD::GetLevelUpMenuController(const FWidgetControllerParams& WCParams)
+ULevelUpMenuController* AVS_HUD::GetLevelUpMenuController(const FWidgetControllerParams& WCParams)
 {
 	if (LevelUpMenuController == nullptr)
 	{
-		LevelUpMenuController = NewObject<UVS_LevelUpMenuController>(this, LevelUpMenuControllerClass);
+		LevelUpMenuController = NewObject<ULevelUpMenuController>(this, LevelUpMenuControllerClass);
 		LevelUpMenuController->SetWidgetControllerParams(WCParams);
 		LevelUpMenuController->BindCallbacksToDependencies();
 	}
@@ -94,7 +94,7 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 	APlayerState* PS = PC ? PC->PlayerState : nullptr;
 	const FWidgetControllerParams WCParams(PC, PS, nullptr, nullptr);
 
-	UVS_LevelUpMenuController* WidgetController = GetLevelUpMenuController(WCParams);
+	ULevelUpMenuController* WidgetController = GetLevelUpMenuController(WCParams);
 	WidgetController->SetSkillOptions(SkillOptions);
 
 	LevelUpWidget->SetWidgetController(WidgetController);
