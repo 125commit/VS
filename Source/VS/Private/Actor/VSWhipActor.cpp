@@ -21,14 +21,12 @@ AVSWhipActor::AVSWhipActor()
 	WhipCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	WhipCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
 	WhipCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	WhipCollision->SetBoxExtent(BaseBoxExtent);
-	WhipCollision->SetRelativeLocation(BaseBoxOffset);
 }
 
 void AVSWhipActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 {
 	SetActorRotation(InitParams.FacingRotation);
-	
+	SetWhipCollision();
 	Super::InitFromParams(InitParams);
 }
 
@@ -39,7 +37,6 @@ void AVSWhipActor::BeginPlay()
 	if (HasAuthority() && WhipCollision)
 	{
 		WhipCollision->OnComponentBeginOverlap.AddDynamic(this, &AVSWhipActor::OnOverlapBegin);
-		WhipCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	}
 	
 	// 已经在范围内的Actor不会触发OnOverlapBegin，所以要补判
@@ -52,5 +49,24 @@ void AVSWhipActor::BeginPlay()
 			OnOverlapBegin(WhipCollision, Actor, nullptr, INDEX_NONE, false, FHitResult());
 		}
 	}
+}
+
+void AVSWhipActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	SetWhipCollision();
+}
+
+void AVSWhipActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+}
+
+void AVSWhipActor::SetWhipCollision()
+{
+	if (!WhipCollision) return;
+	WhipCollision->SetBoxExtent(BaseBoxExtent);
+	WhipCollision->SetRelativeLocation(BaseBoxOffset);
 }
 

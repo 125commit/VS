@@ -12,7 +12,7 @@ UVS_AttributeSet::UVS_AttributeSet()
 	// 这里的默认值仅作底层兜底。对于倍率属性，兜底值设为 1.f ，以免发生乘 0 变 0 的BUG。
 	InitHealth(100.f);
 	InitMaxHealth(100.f);
-	InitBaseDamage(1.f);          // 伤害倍率默认 1.0
+	InitMight(1.f);          // 伤害倍率默认 1.0
 	InitMagnetRadius(100.f);
 	InitWeaponCooldown(1.f);
 	InitWeaponDuration(1.f);
@@ -28,7 +28,7 @@ void UVS_AttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	// 注册属性 必须使用 COND_None 和 REPNOTIFY_Always，保证预测回滚和 UI 刷新强制执行！
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, BaseDamage, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, Might, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, MagnetRadius, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponCooldown, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponDuration, COND_None, REPNOTIFY_Always);
@@ -46,9 +46,9 @@ void UVS_AttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealt
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, MaxHealth, OldMaxHealth);
 }
-void UVS_AttributeSet::OnRep_BaseDamage(const FGameplayAttributeData& OldBaseDamage) const
+void UVS_AttributeSet::OnRep_Might(const FGameplayAttributeData& OldMight) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, BaseDamage, OldBaseDamage);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, Might, OldMight);
 }
 void UVS_AttributeSet::OnRep_MagnetRadius(const FGameplayAttributeData& OldMagnetRadius) const
 {

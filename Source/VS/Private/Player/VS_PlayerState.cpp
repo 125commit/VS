@@ -49,6 +49,7 @@ void AVS_PlayerState::AddXP(float BaseXP)
 
 	// 2. 累加绝对总经验
 	XP += BaseXP * GreedMultiplier;
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("Total XP: %f"), XP));
 
 	// 3. 判定升级
 	if (LevelUpInfo)
@@ -64,6 +65,7 @@ void AVS_PlayerState::AddXP(float BaseXP)
 			PendingLevelUps++;
 			
 			OnLevelChangedDelegate.Broadcast(Level);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Current Level: %i"), Level));
 		}
 
 		//只有当原本没有升级队列，且现在有了升级队列时，才呼叫弹窗
@@ -131,6 +133,7 @@ void AVS_PlayerState::CalculateAndBroadcastXPProgress()
 	XPPercent = FMath::Clamp(XPPercent, 0.f, 1.f);
 	OnXPPercentChangedDelegate.Broadcast(XPPercent);
 }
+
 void AVS_PlayerState::OnRep_Level(int32 OldLevel)
 {
 	int32 TempLevel = OldLevel;

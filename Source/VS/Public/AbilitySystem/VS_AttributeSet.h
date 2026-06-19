@@ -53,9 +53,9 @@ public:
 	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, MaxHealth);
 	
 	// 3. 基础伤害倍率
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BaseDamage, Category = "Vital Attributes")
-	FGameplayAttributeData BaseDamage;
-	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, BaseDamage);
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Might, Category = "Vital Attributes")
+	FGameplayAttributeData Might;
+	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, Might);
 	
 	// 4. 拾取范围(专供 DropManager 纯数学轮询比对)
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MagnetRadius, Category = "Vital Attributes")
@@ -89,7 +89,7 @@ public:
 	UFUNCTION()
 	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
 	UFUNCTION()
-	void OnRep_BaseDamage(const FGameplayAttributeData& OldBaseDamage) const;
+	void OnRep_Might(const FGameplayAttributeData& OldMight) const;
 	UFUNCTION()
 	void OnRep_MagnetRadius(const FGameplayAttributeData& OldMagnetRadius) const;
 	UFUNCTION()
