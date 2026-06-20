@@ -29,6 +29,10 @@ public:
 	
 	void ReturnWeaponToPool(AVS_WeaponActor* Weapon);
 	
+	/** 查找某 Owner 身上已激活的指定类型武器（ Garlic 常驻武器复用） */
+	AVS_WeaponActor* FindActiveWeapon(AActor* Owner, TSubclassOf<AVS_WeaponActor> WeaponActorClass) const;
+
+	
 private:
 	UPROPERTY()
 	TObjectPtr<UVSObjectPool> WeaponPool = nullptr;

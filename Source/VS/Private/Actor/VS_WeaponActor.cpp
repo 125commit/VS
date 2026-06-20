@@ -21,13 +21,7 @@ AVS_WeaponActor::AVS_WeaponActor()
 	WeaponEffect->SetupAttachment(RootComponent);
 }
 
-void AVS_WeaponActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	// 敌人在鞭击生成前已站在范围内时，OverlapBegin 不会触发，需补判
-	SweepInitialOverlaps();
-}
+
 
 void AVS_WeaponActor::SweepInitialOverlaps()
 {
@@ -62,6 +56,7 @@ void AVS_WeaponActor::ActivateWeapon(const FVSWeaponInitParams& InitParams, AAct
 		WeaponEffect->Activate(true);
 	}
 	
+	//WeaponActor每次出池的时候都要补扫，避免提前站在范围内的敌人无法受到伤害
 	SweepInitialOverlaps();
 	
 	const float Duration = InitParams.Duration > 0.f ? InitParams.Duration : 0.15f;

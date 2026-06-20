@@ -58,3 +58,18 @@ void UVSWeaponSubsysem::ReturnWeaponToPool(AVS_WeaponActor* Weapon)
 	ActiveWeapons.RemoveSingleSwap(Weapon);
 	WeaponPool->ReturnActorToPool(Weapon);
 }
+
+AVS_WeaponActor* UVSWeaponSubsysem::FindActiveWeapon(AActor* Owner, TSubclassOf<AVS_WeaponActor> WeaponActorClass) const
+{
+	if (!Owner || !WeaponActorClass) return nullptr;
+	
+	for (AVS_WeaponActor* Weapon : ActiveWeapons)
+	{
+		if (!Weapon || Weapon->IsHidden()) continue;
+		if (Weapon->GetOwner() != Owner) continue;
+		if (!Weapon->IsA(WeaponActorClass)) continue;
+		return Weapon;
+	}
+	
+	return nullptr;
+}
