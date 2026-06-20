@@ -69,6 +69,9 @@ void UVS_AbilitySystemComponent::ServerUpgradeAbility_Implementation(TSubclassOf
 void UVS_AbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority()) return;
+	
+	// 防止因为 Controller 重复附身（PossessedBy被调用多次）导致发两次初始武器！
+	if (bStartupAbilitiesGiven) return;
 
 	for (const TSubclassOf<UGameplayAbility>& AbilityClass : StartupAbilities)
 	{
