@@ -39,16 +39,6 @@ void AVSWhipActor::BeginPlay()
 		WhipCollision->OnComponentBeginOverlap.AddDynamic(this, &AVSWhipActor::OnOverlapBegin);
 	}
 	
-	// 已经在范围内的Actor不会触发OnOverlapBegin，所以要补判
-	if (HasAuthority() && WhipCollision)
-	{
-		TArray<AActor*> Overlapping;
-		WhipCollision->GetOverlappingActors(Overlapping, AVSEnemy::StaticClass());
-		for (AActor* Actor : Overlapping)
-		{
-			OnOverlapBegin(WhipCollision, Actor, nullptr, INDEX_NONE, false, FHitResult());
-		}
-	}
 }
 
 void AVSWhipActor::OnConstruction(const FTransform& Transform)

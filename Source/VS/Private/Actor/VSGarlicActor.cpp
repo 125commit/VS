@@ -1,0 +1,162 @@
+// LAvid
+
+
+#include "Actor/VSGarlicActor.h"
+
+#include "Components/SphereComponent.h"
+#include "NiagaraComponent.h"
+#include "Character/VSEnemy.h"
+#include "Kismet/GameplayStatics.h"
+
+
+AVSGarlicActor::AVSGarlicActor()
+{
+	if (SphereCollision)
+	{
+		SphereCollision->SetSphereRadius(BaseSphereRadius);
+	}
+}
+
+void AVSGarlicActor::InitFromParams(const FVSWeaponInitParams& InitParams)
+{
+	// 不调用 Super：避免 SetLifeSpan(Duration) 和父类默认值
+	WeaponDamage = InitParams.Damage;
+	SetActorScale3D(FVector(InitParams.Area));
+
+}
+
+void AVSGarlicActor::BeginPlay()
+{
+	Super::BeginPlay();
+	if (HasAuthority() && SphereCollision)
+	{
+		SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AVSGarlicActor::OnOverlapBegin);
+	}
+}
+
+void AVSGarlicActor::SweepInitialOverlaps()
+{
+
+}
+
+void AVSGarlicActor::ActivateWeapon(const FVSWeaponInitParams& InitParams, AActor* InOwner, APawn* InInstigator)
+{
+	// 不调用 Super::ActivateWeapon：不设 LifetimeTimer、不回池
+	
+	if (!HasAuthority()) return;
+	
+	InitFromParams(InitParams);
+	SetOwner(InOwner);
+	SetInstigator(InInstigator);
+	SetActorHiddenInGame(false);
+	
+	if (AActor* OwnerActor = GetOwner())
+	{
+		//附着在玩家身上
+		AttachToActor(OwnerActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	}
+	
+	if (SphereCollision)
+	{
+		SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	}
+	SetActorEnableCollision(true);
+	
+	if (WeaponEffect)
+	{
+		WeaponEffect->Activate(true);
+	}
+	
+}
+
+void AVSGarlicActor::DeactivateWeapon()
+{
+	GetWorldTimerManager().ClearTimer(LifetimeTimerHandle);
+	WeaponDamage = 0.f;
+	SetActorScale3D(FVector::OneVector);
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
+	if (SphereCollision)
+	{
+		SphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	SetActorEnableCollision(false);
+	
+	if (WeaponEffect)
+	{
+		WeaponEffect->Deactivate();
+	}
+	
+	SetActorHiddenInGame(true);
+}
+
+
+//对已经在 Circle 内的 Actor 补上伤害
+void AVSGarlicActor::ApplyPeriodicDamageInCircle(const FVSWeaponInitParams& InitParams)
+{
+	if (!HasAuthority()) return;
+	
+	WeaponDamage = InitParams.Damage;
+	
+	// SetActorScale3D 会让已重叠的敌人再次触发 OnComponentBeginOverlap
+	/** 所以需要 bCloseOverlapDamage 屏蔽 OnBeginOverlap 函数中的伤害，用当前函数来“补”伤害 **/
+	bCloseOverlapDamage = true;
+	SetActorScale3D(FVector(InitParams.Area));
+	bCloseOverlapDamage = false;
+
+	//Apply PassiveEffect & Dmaage
+	if (!SphereCollision) return;
+	
+	TArray<AActor*> OverlappingActors;
+	SphereCollision->GetOverlappingActors(OverlappingActors, AVSEnemy::StaticClass());
+	
+	for (AActor* Actor : OverlappingActors)
+	{
+		if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
+		{
+			ApplyGarlicPassiveEffects(Enemy);
+			
+			UGameplayStatics::ApplyDamage(
+				Enemy,
+				WeaponDamage,
+				GetInstigatorController(),
+				this,
+				UDamageType::StaticClass());
+			
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, 
+	FString::Printf(TEXT("Garlic Apply Damage: [%f]"), WeaponDamage));
+		}
+	}
+	
+}
+
+
+//对刚进入碰撞体的敌人造成伤害
+void AVSGarlicActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (bCloseOverlapDamage) return;
+	if (!HasAuthority() || !OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
+	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
+	if (!Enemy || Enemy->IsDead() || WeaponDamage <= 0.f) return;
+	
+	//TODO:设置被动
+	ApplyGarlicPassiveEffects(Enemy);
+	
+	//一发生重叠就造成伤害
+	UGameplayStatics::ApplyDamage(
+		Enemy,
+		WeaponDamage,
+		GetInstigatorController(),
+		this,
+		UDamageType::StaticClass());
+	
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, 
+		FString::Printf(TEXT("Garlic Apply Damage: [%f]"), WeaponDamage));
+}
+
+
+void AVSGarlicActor::ApplyGarlicPassiveEffects(AVSEnemy* Enemy)
+{
+	//TODO:
+}
