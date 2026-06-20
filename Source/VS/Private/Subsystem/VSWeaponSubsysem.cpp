@@ -40,8 +40,7 @@ AVS_WeaponActor* UVSWeaponSubsysem::SpawnWeaponFromPool(TSubclassOf<AVS_WeaponAc
 	
 	if (!WeaponActorClass || !AvatarActor || !WeaponPool) return nullptr;
 	
-	AVS_WeaponActor* Weapon = Cast<AVS_WeaponActor>( WeaponPool->GetActorFromPool(World, WeaponActorClass, 
-		SpawnTransform.GetLocation(), SpawnTransform.Rotator()));
+	AVS_WeaponActor* Weapon = Cast<AVS_WeaponActor>( WeaponPool->GetActorFromPool(World, WeaponActorClass, SpawnTransform.GetLocation(), SpawnTransform.Rotator()));
 	
 	if (!Weapon) return nullptr;
 

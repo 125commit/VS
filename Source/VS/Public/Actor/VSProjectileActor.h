@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Actor/VS_WeaponActor.h"
-#include "VSMagicWandActor.generated.h"
+#include "VSProjectileActor.generated.h"
 
 UCLASS()
-class VS_API AVSMagicWandActor : public AVS_WeaponActor
+class VS_API AVSProjectileActor : public AVS_WeaponActor
 {
 	GENERATED_BODY()
 	
 public:	
-	AVSMagicWandActor();
-	
+	AVSProjectileActor();
+
 protected:
 	virtual void InitFromParams(const FVSWeaponInitParams& InitParams) override;
 	virtual void ActivateWeapon(const FVSWeaponInitParams& InitParams, AActor* InOwner, APawn* InInstigator) override;
@@ -34,7 +34,7 @@ protected:
 	
 	void ReturnToPool();
 	
-	// 用于碰撞延迟
+	/* 用于碰撞延迟 */ 
 	void SetupInstigatorIgnore(APawn* InstigatorPawn);
 	void EnableProjectileCollision();
 	
@@ -42,7 +42,7 @@ protected:
 	float CollisionEnableDelay = 0.05f;
 	
 	FTimerHandle CollisionEnableTimerHandle;
-	
+	/* */
 	
 	UPROPERTY(EditDefaultsOnly, Category = "VS|MagicWand")
 	float DefaultSphereRadius = 15.f;
@@ -50,13 +50,13 @@ protected:
 	float ProjectileSpeed = 600.f;
 	
 	TWeakObjectPtr<AVSEnemy> TargetEnemy;
-	bool bHasHit = false;
 	
-
-
+	/** FireWand 穿透：记录本颗投射物已伤害过的敌人，防止同一次攻击重复扣血 */
+	TSet<TWeakObjectPtr<AVSEnemy>> HitEnemies;
 	
-
-
-
-
+	bool bStopOnHit = false;
+	
+	EVSProjectileMovementMode MovementMode = EVSProjectileMovementMode::Straight;
+	
+	FVector FlightDirection = FVector::ForwardVector;
 };

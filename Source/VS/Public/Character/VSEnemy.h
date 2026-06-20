@@ -20,7 +20,7 @@ public:
 	AVSEnemy();
 	
 	void SetIsElite(bool bIsInElite);
-	FORCEINLINE bool GetIsElite() {return bIsElite;}
+	FORCEINLINE bool GetIsElite() const {return bIsElite;}
 	FORCEINLINE bool IsDead() const {return bIsDead;}
 	
 	FORCEINLINE UDA_EnemyDropTable* GetDropTable() const { return DropTable; }
@@ -71,6 +71,6 @@ protected:
 private:
 	bool bIsDead = false;
 	void RefreshDefaultMaxHealth();
-	void RefreshDefaultScale();
+
 	
 };

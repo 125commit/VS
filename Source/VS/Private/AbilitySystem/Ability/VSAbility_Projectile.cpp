@@ -12,33 +12,28 @@
 
 UVSAbility_Projectile::UVSAbility_Projectile()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	
-	const FVSGameplayTags GameplayTags = FVSGameplayTags::Get();
-	AbilityTag = GameplayTags.Abilities_Weapon_MagicWand;
-	AbilityTypeTag = GameplayTags.Abilities_Type_Weapon;
+	// C++ 默认当强能魔杖；火焰魔杖用蓝图子类改 Tag + TargetMode + MovementMode
+	SetupWeaponAbility(FVSGameplayTags::Get().Abilities_Weapon_MagicWand);
+}
+
+
+bool UVSAbility_Projectile::TryGetWeaponFireContext(FVSWeaponFireContext& OutContext) const
+{
+	return Super::TryGetWeaponFireContext(OutContext);
 }
 
 void UVSAbility_Projectile::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 {
-	UWorld* World = GetWorld();
-	if (!World) return;
+	FVSWeaponFireContext Context;
+	if (!TryGetWeaponFireContext(Context)) return;
 	
-	UVSWeaponSubsysem* WeaponSubsystem = World->GetSubsystem<UVSWeaponSubsysem>();
-	UVSEnemyManager* EnemyManager = World -> GetSubsystem<UVSEnemyManager>();
+	UVSEnemyManager* EnemyManager = Context.World -> GetSubsystem<UVSEnemyManager>();
+	if (!EnemyManager) return;
 	
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	
-	if (!WeaponActorClass || !AvatarActor || !WeaponSubsystem || !EnemyManager )
-	{
-		return;
-	}
-	
-	
-	const FVector PlayerLoc = AvatarActor->GetActorLocation();
+	const FVector PlayerLoc = Context.AvatarActor->GetActorLocation();
 	const float FireRangeSq = FMath::Square(FMath::Max(0.f, FireRange));
 	
-	
+	//获取射程内的敌人
 	TArray<AVSEnemy*> EnemiesInRange;
 	EnemiesInRange.Reserve(EnemyManager->ActiveEnemies.Num()); 	//预分配内存
 	for (AActor* Actor : EnemyManager->ActiveEnemies)
@@ -51,48 +46,60 @@ void UVSAbility_Projectile::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 		}
 	}
 	
-	// 范围内没有敌人，本轮不生成任何 Projectile
+	// 范围内没有敌人，则不生成任何 Projectile
 	if (EnemiesInRange.Num() == 0)
 	{
 		return;
 	}
 	
-	//根据距离给敌人排序
-	//Sort是数组的一个排序方法；需要传入一个“比较规则”（即Predicate，类似是一个Lambda）
-	// [&PlayerLoc] 是捕获列表
-	//返回的是bool，表示 A 是否排在 B 前面
-	EnemiesInRange.Sort([&PlayerLoc](const AVSEnemy& A, const AVSEnemy& B)
+	//MagicWand模式：根据距离给敌人排序
+		//Sort是数组的一个排序方法；需要传入一个“比较规则”（即Predicate，类似是一个Lambda）
+		// [&PlayerLoc] 是捕获列表
+		//返回的是bool，表示 A 是否排在 B 前面
+	if (TargetMode == EVSProjectileTargetMode::NearestEnemy)
 	{
-		const float DistSqA = FVector::DistSquared(PlayerLoc, A.GetActorLocation());
-		const float DistSqB = FVector::DistSquared(PlayerLoc, B.GetActorLocation());
-		return DistSqA < DistSqB;
-	});
+		EnemiesInRange.Sort([&PlayerLoc](const AVSEnemy& A, const AVSEnemy& B)
+		{
+			return FVector::DistSquared(PlayerLoc, A.GetActorLocation())
+				 < FVector::DistSquared(PlayerLoc, B.GetActorLocation());
+		});
+	}
 	
 	
+	//Spawn
 	const int32 ProjectileCount = FMath::Max(1, Stats.ProjectileCount);
-	//Spawn MagicWand
+	
 	for (int32 i = 0; i < ProjectileCount; i++)
 	{
-		//从排序后的数组中找到TargetEnemy
 		AVSEnemy* TargetEnemy = nullptr;
-		if (EnemiesInRange.IsValidIndex(i))
+		switch (TargetMode)
 		{
-			TargetEnemy = EnemiesInRange[i];
-		}
-		else if (EnemiesInRange.Num() > 0)
-		{
-			TargetEnemy = EnemiesInRange[0];
+			//如果是MagicWand，就找最近的
+		case EVSProjectileTargetMode::NearestEnemy:
+			TargetEnemy = EnemiesInRange.IsValidIndex(i) ? EnemiesInRange[i] : EnemiesInRange[0];
+			break;
+			
+			//如果是FireWand，就随机
+		case EVSProjectileTargetMode::RandomEnemy:
+			TargetEnemy = EnemiesInRange[FMath::RandRange(0, EnemiesInRange.Num() - 1)];
+			break;
 		}
 		
-		//初始化数据
-		FVSWeaponInitParams Params;
-		Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
-		Params.ProjectileSpeed = Stats.ProjectileSpeed > 0.f ? Stats.ProjectileSpeed : 600.f;
-		Params.TargetEnemy = TargetEnemy;
-		Params.Duration = Stats.Duration > 0.f ? Stats.Duration : 3.f;
-
 		
-		FVector InitialDirection = AvatarActor->GetActorForwardVector();
+		FVSWeaponInitParams Params = MakeBaseWeaponParams(Stats);
+		
+		//设置 Params 中的 TargetEnemy（这是给Actor用的）
+		if (MovementMode == EVSProjectileMovementMode::Homing)
+		{
+			Params.TargetEnemy = TargetEnemy;
+		}
+		else
+		{
+			Params.TargetEnemy = nullptr;
+		}
+		
+		
+		FVector InitialDirection = FVector();
 		if (TargetEnemy)
 		{
 			InitialDirection = (TargetEnemy->GetActorLocation() - PlayerLoc).GetSafeNormal();
@@ -100,16 +107,21 @@ void UVSAbility_Projectile::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 		InitialDirection.Z = 0.f;
 		InitialDirection = InitialDirection.GetSafeNormal();
 		
-		const FRotator SpawnRotation = InitialDirection.IsNearlyZero() ? AvatarActor->GetActorRotation() : InitialDirection.Rotation();
+		Params.MovementMode = MovementMode;
+		Params.FlightDirection = InitialDirection;
+		
+		
+		const FRotator SpawnRotation = InitialDirection.IsNearlyZero() ? Context.AvatarActor->GetActorRotation() : InitialDirection.Rotation();
 		const FVector SpawnLocation = PlayerLoc + InitialDirection * SpawnForwardOffset;  //增加一个偏移量，使其在角色前面生成
 		const FTransform SpawnTransform(SpawnRotation, SpawnLocation);
 		
 		
-		WeaponSubsystem->SpawnWeaponFromPool(
+		Context.WeaponSubsystem->SpawnWeaponFromPool(
 			WeaponActorClass,
 			SpawnTransform,
-			AvatarActor,
+			Context.AvatarActor,
 			Params);
 	}
 	
 }
+

@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Data/VSProjectileType.h"
 #include "VS_WeaponActor.generated.h"
 
 class USphereComponent;
 class UNiagaraComponent;
 class AVSEnemy;
+
 
 /** Ability 传给 Actor 的运行时参数包 */
 USTRUCT(BlueprintType)
@@ -31,6 +33,15 @@ struct FVSWeaponInitParams
 	// for projectiles
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	float ProjectileSpeed = 600.f;
+	
+	/** Projectile的飞行模式：由 GA 在 spawn 前设置 */
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	EVSProjectileMovementMode MovementMode = EVSProjectileMovementMode::Straight;
+	
+	/** 用于 Straight 模式：已归一化的水平飞行方向 */
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	FVector FlightDirection = FVector::ForwardVector;
+	
 	
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	TWeakObjectPtr<AVSEnemy> TargetEnemy;

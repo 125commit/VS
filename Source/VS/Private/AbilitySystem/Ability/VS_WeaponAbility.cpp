@@ -4,9 +4,11 @@
 #include "AbilitySystem/Ability/VS_WeaponAbility.h"
 #include "Actor/VS_WeaponActor.h"
 #include "AbilitySystemComponent.h"
+#include "VSGameplayTags.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Data/DA_AbilityInfo.h"
+#include "Subsystem/VSWeaponSubsysem.h"
 
 
 
@@ -61,4 +63,41 @@ float UVS_WeaponAbility::GetAttributeValue(const FGameplayAttribute& Attribute) 
 		}
 	}
 	return 1.0f; // 默认返回 1.0，保证逻辑不崩溃
+}
+
+void UVS_WeaponAbility::SetupWeaponAbility(const FGameplayTag& InAbilityTag)
+{
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	
+	AbilityTag = InAbilityTag;
+	
+	const FVSGameplayTags GameplayTags = FVSGameplayTags::Get();
+	AbilityTypeTag = GameplayTags.Abilities_Type_Weapon;
+	
+}
+
+bool UVS_WeaponAbility::TryGetWeaponFireContext(FVSWeaponFireContext& OutContext) const
+{
+	OutContext.World = GetWorld();
+	OutContext.AvatarActor = GetAvatarActorFromActorInfo();
+	OutContext.WeaponSubsystem = OutContext.World ? GetWorld()->GetSubsystem<UVSWeaponSubsysem>() : nullptr;
+	
+	OutContext.bIsValid = WeaponActorClass
+		 && OutContext.AvatarActor
+		 && OutContext.WeaponSubsystem
+		 && OutContext.World;
+	
+	return OutContext.bIsValid;
+}
+
+FVSWeaponInitParams UVS_WeaponAbility::MakeBaseWeaponParams(const FVSAbilityRuntimeStats& Stats) const
+{
+	FVSWeaponInitParams Params;
+	Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
+	Params.Area = Stats.Area;
+	Params.Duration = Stats.Duration;
+	Params.ProjectileSpeed = Stats.ProjectileSpeed > 0.f ? Stats.ProjectileSpeed : 600.f;
+
+	
+	return Params;
 }

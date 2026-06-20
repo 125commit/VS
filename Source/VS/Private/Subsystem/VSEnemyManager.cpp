@@ -62,11 +62,6 @@ AActor* UVSEnemyManager::SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, co
 		VSEnemy->ResetForSpawn();
 		ActiveEnemies.Add(NewEnemy);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("EnemyClass [%s] must inherit from AVSEnemy, otherwise movement will not work."),
-			*GetNameSafe(EnemyClass));
-	}
 
 	return NewEnemy;
 }
@@ -86,19 +81,44 @@ void UVSEnemyManager::ReturnEnemiesToPool(AActor* Enemy)
 
 int32 UVSEnemyManager::GetActiveNormalEnemiesCount() const
 {
-	return ActiveEnemies.Num();
+	int32 Count = 0;
+	for (const AActor* Actor : ActiveEnemies)
+	{
+		if (const AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
+		{
+			if (!Enemy->GetIsElite())
+			{
+				++Count;
+			}
+		}
+	}
+	return Count;
+}
+int32 UVSEnemyManager::GetActiveEliteEnemiesCount() const
+{
+	int32 Count = 0;
+	for (const AActor* Actor : ActiveEnemies)
+	{
+		if (const AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
+		{
+			if (Enemy->GetIsElite())
+			{
+				++Count;
+			}
+		}
+	}
+	return Count;
 }
 
 void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
 {
-	if (!Enemy) return;
+	if (!Enemy || !ActiveEnemies.Contains(Enemy)) return;
 
 	UVSDropManager* DropManager = GetWorld()->GetSubsystem<UVSDropManager>();
 	if (!DropManager) return;
 
 	if (UDA_EnemyDropTable* DropTable = Enemy->GetDropTable())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
 		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
 	}
 	ReturnEnemiesToPool(Enemy);

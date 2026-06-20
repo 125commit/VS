@@ -79,6 +79,7 @@ void UVSDropManager::SpawnDrop(const FVector& Location, const UDA_EnemyDropTable
 	FDropEntry SelectedEntry;
 	if (!DropTable->IsDrop(SelectedEntry)) return;
 
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
 	const FDropTypeDefinition DropTypeDefinition = DropSettings->FindDefinition(SelectedEntry.DropType);
 	const TSubclassOf<AVSDropItem> DropClass = DropTypeDefinition.DropActorClass;
 	if (DropClass == nullptr) return;

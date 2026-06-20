@@ -17,6 +17,12 @@ void AVSWaveDirector::BeginPlay()
 {
 	Super::BeginPlay();
 	ElapsedTime = 0.f;
+	
+	//初始化 WaveLastSpawnTimes 数组，先占位 (预分配)
+	if (WaveConfig)
+	{
+		WaveLastSpawnTimes.Init(0.f, WaveConfig->Waves.Num());
+	}
 }
 
 void AVSWaveDirector::Tick(float DeltaTime)
@@ -24,8 +30,6 @@ void AVSWaveDirector::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	ElapsedTime += DeltaTime;
 	ProcessSpawn();
-	
-	
 }
 
 void AVSWaveDirector::ProcessSpawn()
@@ -36,50 +40,86 @@ void AVSWaveDirector::ProcessSpawn()
 	UVSEnemyManager* EnemyManager = World->GetSubsystem<UVSEnemyManager>();
 	if (!EnemyManager) return;
 	
-	int32 CurrentEnemiesNum = EnemyManager->GetActiveNormalEnemiesCount();
+	int32 CurrentNormalCount = EnemyManager->GetActiveNormalEnemiesCount();
+	int32 CurrentEliteCount  = EnemyManager->GetActiveEliteEnemiesCount();
 	
-	for (FWaveSpawnConfig& Wave : WaveConfig->Waves)
+	
+	for (int32 WaveIndex = 0; WaveIndex < WaveConfig->Waves.Num(); ++WaveIndex)
 	{
-		if (ElapsedTime > Wave.StartTime && ElapsedTime < Wave.EndTime)
+		const FWaveSpawnConfig& Wave = WaveConfig->Waves[WaveIndex];
+		
+		//如果数组长度还是不够，就用 AddZeroed 进行动态扩容
+		if (WaveIndex >= WaveLastSpawnTimes.Num())
 		{
-			if (ElapsedTime - LastSpawnTime > Wave.SpawnInterval)
-			{
-				//Spawn Elite
-				if (Wave.bIsElite)
-				{
-					const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
-					if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation))
-					{
-						if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
-						{
-							Enemy->SetIsElite(true);
-						}
-						CurrentEnemiesNum += 1;
-						LastSpawnTime = ElapsedTime;
-					}
-				}
-				//Spawn normal enemy
-				else
-				{
-					if (CurrentEnemiesNum < WaveConfig->MaxNormalEnemyNum)
-					{
-						int32 NeedToSpawn = FMath::Min(Wave.EnemyNumPerWave, WaveConfig->MaxNormalEnemyNum - CurrentEnemiesNum);
-					
-						for (int32 i = 0; i < NeedToSpawn; i ++)
-						{
-							const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
-							EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation);
-							CurrentEnemiesNum += 1;
-						}
-						LastSpawnTime = ElapsedTime;
-					}
-					
-				}
-				
-			}
+			WaveLastSpawnTimes.AddZeroed(WaveIndex - WaveLastSpawnTimes.Num() + 1);
+		}
+		
+		// 不在时间窗口内，跳过
+		if (ElapsedTime <= Wave.StartTime || ElapsedTime >= Wave.EndTime)
+		{
+			continue;
+		}
+		
+		// 该 Wave 自己的间隔未到，跳过
+		if (ElapsedTime - WaveLastSpawnTimes[WaveIndex] <= Wave.SpawnInterval)
+		{
+			continue;
+		}
+		
+		int32 SpawnedCount = 0;
+		if (Wave.bIsElite)  //精英怪
+		{
+			SpawnedCount = TrySpawnEnemiesWave(
+				Wave, EnemyManager,
+				CurrentEliteCount, WaveConfig->MaxEliteEnemyNum,
+				true
+			);
+			CurrentEliteCount += SpawnedCount;
+		}
+		else   //普通怪
+		{
+			SpawnedCount = TrySpawnEnemiesWave(
+				Wave, EnemyManager,
+				CurrentNormalCount, WaveConfig->MaxNormalEnemyNum,
+				false
+			);
+			CurrentNormalCount += SpawnedCount;
+		}
+		
+		//Spawn成功，把这一波的 WaveLastSpawnTimes 设为当前时间 ElapsedTime
+		if (SpawnedCount > 0)
+		{
+			WaveLastSpawnTimes[WaveIndex] = ElapsedTime;
 		}
 	}
 	
+}
+
+int32 AVSWaveDirector::TrySpawnEnemiesWave(const FWaveSpawnConfig& Wave, UVSEnemyManager* EnemyManager, int32 CurrentCount,
+	int32 MaxCount, bool bSpawnAsElite)
+{
+	int32 AvailableCount = FMath::Max(0, MaxCount - CurrentCount);
+	if (AvailableCount <= 0 ) return 0;
+	
+	const int32 NeedToSpawn = FMath::Min(FMath::Max(Wave.EnemyNumPerWave, 1),AvailableCount);
+	
+	int32 SpawnCount = 0;
+	for (int32 i = 0; i < NeedToSpawn; ++ i)
+	{
+		const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
+		if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation))
+		{
+			if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
+			{
+				if (bSpawnAsElite)
+				{
+					Enemy->SetIsElite(true);
+				}
+			}
+			++ SpawnCount;
+		}
+	}
+	return SpawnCount;
 }
 
 

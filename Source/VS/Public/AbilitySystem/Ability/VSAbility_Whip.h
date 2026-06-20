@@ -20,6 +20,7 @@ public:
 	
 protected:
 	virtual void ExecuteFire(const FVSAbilityRuntimeStats& Stats) override;
+	virtual bool TryGetWeaponFireContext(FVSWeaponFireContext& OutContext) const override;
 
 
 };

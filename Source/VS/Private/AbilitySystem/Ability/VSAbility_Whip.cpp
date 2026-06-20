@@ -9,25 +9,19 @@
 
 UVSAbility_Whip::UVSAbility_Whip()
 {
-	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
-	
-	const FVSGameplayTags GameplayTags = FVSGameplayTags::Get();
-	AbilityTag = GameplayTags.Abilities_Weapon_Whip;
-	AbilityTypeTag = GameplayTags.Abilities_Type_Weapon;
+	SetupWeaponAbility(FVSGameplayTags::Get().Abilities_Weapon_Whip);
 }
 
 void UVSAbility_Whip::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 {
-	UWorld* World = GetWorld();
-	UVSWeaponSubsysem* WeaponSubsystem = World->GetSubsystem<UVSWeaponSubsysem>();
-	AActor* AvatarActor = GetAvatarActorFromActorInfo();
-	if (!WeaponActorClass || !AvatarActor || !WeaponSubsystem || !World) return;
+	FVSWeaponFireContext Context;
+	if (!TryGetWeaponFireContext(Context)) return;
 	
 	//鞭子的数量
 	const int32 WhipCount = FMath::Max(1, Stats.ProjectileCount);
 	
 	//获取角色朝向的单位向量
-	FVector Forward = AvatarActor->GetActorForwardVector();
+	FVector Forward = Context.AvatarActor->GetActorForwardVector();
 	Forward.Z = 0.f;
 	Forward = Forward.GetSafeNormal();
 	
@@ -36,23 +30,25 @@ void UVSAbility_Whip::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 		//设置Whip朝向
 		FVector FacingDirection = (i % 2 == 0) ? Forward : -Forward;
 		const FRotator FacingRotation = FacingDirection.Rotation();
-		const FTransform SpawningTransform(FacingRotation, AvatarActor->GetActorLocation());
-	
-		FVSWeaponInitParams Params;
-		Params.Area = Stats.Area;
-		Params.Duration = Stats.Duration;
-		Params.Damage = ComputeFinalDamage(Stats.BaseDamage);
+		const FTransform SpawningTransform(FacingRotation, Context.AvatarActor->GetActorLocation());
+		
+		FVSWeaponInitParams Params = MakeBaseWeaponParams(Stats);
 		Params.FacingRotation = FacingRotation;
 		
-		WeaponSubsystem->SpawnWeaponFromPool(
+		Context.WeaponSubsystem->SpawnWeaponFromPool(
 			WeaponActorClass,
 			SpawningTransform,
-			AvatarActor,
+			Context.AvatarActor,
 			Params);
 	}
 	
 	
 	
+}
+
+bool UVSAbility_Whip::TryGetWeaponFireContext(FVSWeaponFireContext& OutContext) const
+{
+	return Super::TryGetWeaponFireContext(OutContext);
 }
 
 

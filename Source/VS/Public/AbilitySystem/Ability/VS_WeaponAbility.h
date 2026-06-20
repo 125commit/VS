@@ -8,6 +8,17 @@
 
 class AVS_WeaponActor;
 struct FVSAbilityRuntimeStats;
+struct FVSWeaponInitParams;
+class UVSWeaponSubsysem;
+
+struct FVSWeaponFireContext
+{
+	UWorld* World = nullptr;
+	UVSWeaponSubsysem* WeaponSubsystem = nullptr;
+	AActor* AvatarActor = nullptr;
+	bool bIsValid = false;
+};
+
 /**
  * 武器技能基类 (大脑)
  * 负责大循环倒计时，并生成包含碰撞和特效的实体打手
@@ -45,7 +56,16 @@ protected:
 	/** BaseDamage(表) × Might(AttributeSet) */
 	float ComputeFinalDamage(float BaseDamage) const;
 	
-	
 	// 获取角色属性的辅助函数
 	float GetAttributeValue(const FGameplayAttribute& Attribute) const;
+	
+	//设置实例化策略、AbilityTypeTag 和 AbilityTag
+	void SetupWeaponAbility(const FGameplayTag& InAbilityTag);
+	
+	//统一检查World、WeaponSubsystem、AvatarActor
+	virtual bool TryGetWeaponFireContext(FVSWeaponFireContext& OutContext) const;
+	
+	//设置技能都会用到的数据的接口函数（Area、Damage都会用到；ProjectileSpeed部分会用到，就额外设置）
+	FVSWeaponInitParams MakeBaseWeaponParams(const FVSAbilityRuntimeStats& Stats) const;
+	
 };
