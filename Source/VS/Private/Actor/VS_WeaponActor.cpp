@@ -6,6 +6,7 @@
 #include "NiagaraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/VSEnemy.h"
+#include "Subsystem/VSWeaponSubsysem.h"
 
 AVS_WeaponActor::AVS_WeaponActor()
 {
@@ -23,13 +24,6 @@ AVS_WeaponActor::AVS_WeaponActor()
 void AVS_WeaponActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (!HasAuthority()) return;
-	
-	if (SphereCollision)
-	{
-		SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &AVS_WeaponActor::OnOverlapBegin);
-	}
 	
 	// 敌人在鞭击生成前已站在范围内时，OverlapBegin 不会触发，需补判
 	SweepInitialOverlaps();
@@ -49,6 +43,68 @@ void AVS_WeaponActor::SweepInitialOverlaps()
 	
 }
 
+
+
+void AVS_WeaponActor::ActivateWeapon(const FVSWeaponInitParams& InitParams, AActor* InOwner, APawn* InInstigator)
+{
+	if (!HasAuthority()) return;
+	
+	//激活的时候 就先初始化数据
+	InitFromParams(InitParams);
+	
+	SetOwner(InOwner);
+	SetInstigator(InInstigator);
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
+	
+	if (WeaponEffect)
+	{
+		WeaponEffect->Activate(true);
+	}
+	
+	SweepInitialOverlaps();
+	
+	const float Duration = InitParams.Duration > 0.f ? InitParams.Duration : 0.15f;
+	
+	GetWorldTimerManager().SetTimer(
+		LifetimeTimerHandle,
+		this,
+		&AVS_WeaponActor::OnLifetimeEnd,
+		Duration,
+		false);
+}
+
+void AVS_WeaponActor::DeactivateWeapon()
+{
+	GetWorldTimerManager().ClearTimer(LifetimeTimerHandle);
+	SetLifeSpan(0.f);
+	
+	WeaponDamage = 0.f;
+	
+	SetActorScale3D(FVector::OneVector);
+	
+	if (WeaponEffect)
+	{
+		WeaponEffect->Deactivate();
+	}
+	
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+}
+
+void AVS_WeaponActor::OnLifetimeEnd()
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		if (UVSWeaponSubsysem* WeaponSubsystem =  World->GetSubsystem<UVSWeaponSubsysem>())
+		{
+			WeaponSubsystem->ReturnWeaponToPool(this);
+		}
+	}
+	
+
+}
 
 void AVS_WeaponActor::InitWeapon(float InArea, float InDuration, float InDamage)
 {
@@ -77,8 +133,10 @@ void AVS_WeaponActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 	}
 }
 
+
+
 void AVS_WeaponActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                  UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!HasAuthority() || !OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
 	

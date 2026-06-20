@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class UNiagaraComponent;
+class AVSEnemy;
 
 /** Ability 传给 Actor 的运行时参数包 */
 USTRUCT(BlueprintType)
@@ -26,6 +27,13 @@ struct FVSWeaponInitParams
 	
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	FRotator FacingRotation = FRotator::ZeroRotator;
+	
+	// for projectiles
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	float ProjectileSpeed = 600.f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	TWeakObjectPtr<AVSEnemy> TargetEnemy;
 };
 
 
@@ -43,15 +51,21 @@ public:
 	virtual void InitWeapon(float InArea, float InDuration, float InDamage);
 	virtual void InitFromParams(const FVSWeaponInitParams& InitParams);
 	
+	virtual void ActivateWeapon(const FVSWeaponInitParams& InitParams, AActor* InOwner, APawn* InInstigator);
+	virtual void DeactivateWeapon();
+	
 protected:
 	
 	virtual void BeginPlay() override;
 	
 	UFUNCTION()
-	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	void HandlingDamage();
-	void SweepInitialOverlaps();
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	virtual void SweepInitialOverlaps();
+	
+	FTimerHandle LifetimeTimerHandle;
+	void OnLifetimeEnd();
 	
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USphereComponent> SphereCollision;
