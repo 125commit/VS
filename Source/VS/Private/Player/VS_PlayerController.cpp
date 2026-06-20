@@ -66,7 +66,7 @@ void AVS_PlayerController::PauseButtonPressed()
 }
 
 // ==========================================================
-// 核心发牌器算法：依托 GameplayTag 的终极防黑客槽位过滤！
+// 发牌器算法：依托 GameplayTag 的防作弊过滤
 // ==========================================================
 TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 {
@@ -80,12 +80,12 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 
 	UVS_AbilitySystemComponent* ASC = Cast<UVS_AbilitySystemComponent>(VSPS->GetAbilitySystemComponent());
 
-	// 1. 调用 ASC 接口，拿到玩家身上所有的武林秘籍及其等级
+	// 1. 调用 ASC 接口，拿到玩家身上所有的技能及其等级
 	TArray<FVSOwnedAbilityInfo> OwnedAbilities = ASC->GetOwnedAbilities();
 	
 	int32 WeaponCount = 0;
 	int32 PassiveCount = 0;
-
+	
 	// 2. 解析统计当前已占用的武器槽和被动槽
 	for (const FVSOwnedAbilityInfo& OwnedInfo : OwnedAbilities)
 	{
@@ -102,7 +102,7 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 	const int32 MaxWeaponSlots = 3;
 	const int32 MaxPassiveSlots = 3;
 
-	// 3. 遍历全游戏大字典，进行卡池清洗
+	// 3. 遍历技能字典，进行卡池清洗
 	for (const FVSAbilityInfo& Info : AbilityInfoData->AbilityInformation)
 	{
 		bool bAlreadyOwned = false;
@@ -118,13 +118,13 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 			}
 		}
 
-		// 规则A: 如果已经练过，且练到满级了（>= MaxLevel），踢出卡池
+		//  如果已经练过，且练到满级了（>= MaxLevel），踢出卡池
 		if (bAlreadyOwned && CurrentLevel >= Info.MaxLevel)
 		{
 			continue;
 		}
 
-		// 规则B: 如果没练过，但是对应的背包格子满了，踢出卡池
+		// 如果没练过，但是对应的背包格子满了，踢出卡池
 		if (!bAlreadyOwned)
 		{
 			if (Info.AbilityTypeTag.MatchesTagExact(FVSGameplayTags::Get().Abilities_Type_Weapon) && WeaponCount >= MaxWeaponSlots)
@@ -169,7 +169,7 @@ void AVS_PlayerController::Server_QuitToSettlement_Implementation()
 }
 
 // ==========================================================
-// 服务端黑盒：升级与重抽管线 (Server Pipeline)
+// 服务端黑盒：升级与重抽
 // ==========================================================
 
 void AVS_PlayerController::Server_HandleLevelUp_Implementation()
@@ -195,7 +195,7 @@ void AVS_PlayerController::Server_HandleLevelUp_Implementation()
 
 	TArray<FGameplayTag> Options; 
 	
-	// 1. 标准洗牌算法 (Fisher-Yates Shuffle)
+	// 1. 标准洗牌算法 
 	for (int32 i = ValidPool.Num() - 1; i > 0; --i)
 	{
 		int32 j = FMath::RandRange(0, i);
@@ -267,12 +267,17 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 		{
 			// 发放技能或升级
 			ASC->ServerUpgradeAbility(SelectedInfo.AbilityClass);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Server_SelectUpgrade: 无法找到技能配置，或 AbilityClass 为空！Tag: %s"), *SelectedTag.ToString());
+		}
 			
-			// 扣减待处理升级次数
-			VSPS->ConsumePendingLevelUp();
+		// 无论技能是否发放成功，都必须扣减升级次数，否则遇到配置错误时会永久破坏升级队列
+		VSPS->ConsumePendingLevelUp();
 			
-			// 防连发：如果还有升级次数，继续开盲盒
-			if (VSPS->GetPendingLevelUps() > 0)
+		// 防连发：如果还有升级次数，继续开盲盒
+		if (VSPS->GetPendingLevelUps() > 0)
 			{
 				TArray<FGameplayTag> ValidPool = GenerateValidAbilityPool();
 
@@ -305,7 +310,6 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 				Client_ShowLevelUpScreen(Options);
 				return; 
 			}
-		}
 	}
 
 	SetPause(false);
@@ -354,7 +358,7 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 }
 
 // ==========================================================
-// 服务端黑盒：局外管线
+// 服务端：局外管线
 // ==========================================================
 
 void AVS_PlayerController::Server_AcceptSettlement_Implementation()
