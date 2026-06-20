@@ -178,6 +178,21 @@ void AVS_PlayerController::Server_HandleLevelUp_Implementation()
 
 	TArray<FGameplayTag> ValidPool = GenerateValidAbilityPool();
 
+	if (ValidPool.IsEmpty())
+	{
+		if (AVS_PlayerState* VSPS = GetPlayerState<AVS_PlayerState>())
+		{
+			int32 Remaining = VSPS->GetPendingLevelUps();
+			VSPS->AddGold(100 * Remaining);
+			for (int32 k = 0; k < Remaining; ++k)
+			{
+				VSPS->ConsumePendingLevelUp();
+			}
+		}
+		SetPause(false);
+		return;
+	}
+
 	TArray<FGameplayTag> Options; 
 	
 	// 1. 标准洗牌算法 (Fisher-Yates Shuffle)
@@ -206,6 +221,19 @@ void AVS_PlayerController::Server_RerollUpgrade_Implementation()
 		VSPS->ConsumeRerollCount();
 
 		TArray<FGameplayTag> ValidPool = GenerateValidAbilityPool();
+
+		if (ValidPool.IsEmpty())
+		{
+			int32 Remaining = VSPS->GetPendingLevelUps();
+			VSPS->AddGold(100 * Remaining);
+			for (int32 k = 0; k < Remaining; ++k)
+			{
+				VSPS->ConsumePendingLevelUp();
+			}
+			SetPause(false);
+			return;
+		}
+
 		TArray<FGameplayTag> Options; 
 		
 		// 1. 洗牌算法
@@ -247,6 +275,19 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 			if (VSPS->GetPendingLevelUps() > 0)
 			{
 				TArray<FGameplayTag> ValidPool = GenerateValidAbilityPool();
+
+				if (ValidPool.IsEmpty())
+				{
+					int32 Remaining = VSPS->GetPendingLevelUps();
+					VSPS->AddGold(100 * Remaining);
+					for (int32 k = 0; k < Remaining; ++k)
+					{
+						VSPS->ConsumePendingLevelUp();
+					}
+					SetPause(false);
+					return;
+				}
+
 				TArray<FGameplayTag> Options; 
 				
 				// 洗牌并抽卡
