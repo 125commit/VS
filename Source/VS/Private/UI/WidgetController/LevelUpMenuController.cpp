@@ -82,6 +82,8 @@ FVSLevelUpCardInfo ULevelUpMenuController::BuildCardInfo(const FVSAbilityInfo& I
 	CardInfo.NextLevel = FMath::Clamp(CardInfo.CurrentLevel + 1, 1, InAbilityInfo.MaxLevel);
 	CardInfo.bIsNewAbility = CardInfo.CurrentLevel <= 0;
 	CardInfo.LevelDescription = GetDescriptionForLevel(InAbilityInfo, CardInfo.NextLevel);
+	UE_LOG(LogTemp, Warning, TEXT("Level-up card %s current level %d next level %d."),
+		*CardInfo.AbilityTag.ToString(), CardInfo.CurrentLevel, CardInfo.NextLevel);
 
 	return CardInfo;
 }

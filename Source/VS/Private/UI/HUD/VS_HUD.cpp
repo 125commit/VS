@@ -4,6 +4,7 @@
 #include "UI/Widget/VS_UserWidget.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "Player/VS_PlayerController.h"
+#include "Player/VS_PlayerState.h"
 #include "UObject/ConstructorHelpers.h"
 
 #include "UI/WidgetController/LevelUpMenuController.h"
@@ -65,6 +66,11 @@ ULevelUpMenuController* AVS_HUD::GetLevelUpMenuController(const FWidgetControlle
 		LevelUpMenuController = NewObject<ULevelUpMenuController>(this, LevelUpMenuControllerClass);
 		LevelUpMenuController->SetWidgetControllerParams(WCParams);
 		LevelUpMenuController->BindCallbacksToDependencies();
+	}
+	else
+	{
+		// Level-up data depends on the ASC, so refresh params in case the controller was created before ASC was ready.
+		LevelUpMenuController->SetWidgetControllerParams(WCParams);
 	}
 	return LevelUpMenuController;
 }
@@ -133,7 +139,12 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 
 	APlayerController* PC = GetOwningPlayerController();
 	APlayerState* PS = PC ? PC->PlayerState : nullptr;
-	const FWidgetControllerParams WCParams(PC, PS, nullptr, nullptr);
+	UAbilitySystemComponent* ASC = nullptr;
+	if (AVS_PlayerState* VSPS = Cast<AVS_PlayerState>(PS))
+	{
+		ASC = VSPS->GetAbilitySystemComponent();
+	}
+	const FWidgetControllerParams WCParams(PC, PS, ASC, nullptr);
 
 	ULevelUpMenuController* WidgetController = GetLevelUpMenuController(WCParams);
 	if (bCreatedLevelUpWidget)
