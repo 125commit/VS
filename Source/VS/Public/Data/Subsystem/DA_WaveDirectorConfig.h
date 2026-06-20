@@ -52,4 +52,7 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     int32 MaxNormalEnemyNum = 400;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 MaxEliteEnemyNum = 5;
+	
 };

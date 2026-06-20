@@ -102,8 +102,6 @@ void AVS_WeaponActor::OnLifetimeEnd()
 			WeaponSubsystem->ReturnWeaponToPool(this);
 		}
 	}
-	
-
 }
 
 void AVS_WeaponActor::InitWeapon(float InArea, float InDuration, float InDamage)

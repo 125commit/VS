@@ -18,9 +18,6 @@ AVSEnemy::AVSEnemy()
 	
 	RefreshDefaultMaxHealth();
 	Health = MaxHealth;
-	
-	RefreshDefaultScale();
-	//用BodyScale恢复正常体型
 }
 
 void AVSEnemy::SetIsElite(bool bIsInElite)
@@ -31,7 +28,7 @@ void AVSEnemy::SetIsElite(bool bIsInElite)
 	{
 		Health = MaxHealth;
 	}
-	//增大体型
+
 }
 
 void AVSEnemy::SetVisualSpeed(float InSpeed)
@@ -39,18 +36,18 @@ void AVSEnemy::SetVisualSpeed(float InSpeed)
 	VisualSpeed = InSpeed;
 }
 
-//再次从对象池中拿出来循环用
+//回池前的清理
 void AVSEnemy::OnRecycled()
 {
-	bIsDead = false;
 	SetVisualSpeed(0.f);
-	RefreshDefaultMaxHealth();
-	Health = MaxHealth;
+	bIsElite = false;
 }
 
+//从池中拿出来之前重置状态
 void AVSEnemy::ResetForSpawn()
 {
 	bIsDead = false;
+	bIsElite = false;
 	SetVisualSpeed(0.f);
 	RefreshDefaultMaxHealth();
 	Health = MaxHealth;
@@ -64,6 +61,12 @@ float AVSEnemy::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AContr
 	if (!HasAuthority() || bIsDead || Damage <= 0.f)
 	{
 		return 0.f;
+	}
+	
+	//保证已死亡的敌人不会再接受伤害
+	if (const UVSEnemyManager* Manager = GetWorld()->GetSubsystem<UVSEnemyManager>())
+	{
+		if (!Manager->ActiveEnemies.Contains(this)) return 0.f;
 	}
 	
 	const float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
@@ -91,9 +94,6 @@ float AVSEnemy::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AContr
 		}
 	}
 	return DamageToApply;
-	
-	
-	
 }
 
 void AVSEnemy::RefreshDefaultMaxHealth()
@@ -101,8 +101,5 @@ void AVSEnemy::RefreshDefaultMaxHealth()
 	MaxHealth = DefaultMaxHealth *(bIsElite ? EliteHealthMultiplier : 1.f);
 }
 
-void AVSEnemy::RefreshDefaultScale()
-{
-	BodyScale = bIsElite ? 1.25f : 1.f;
-}
+
 

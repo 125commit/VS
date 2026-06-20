@@ -14,4 +14,7 @@ class VS_API UVSAbility_Garlic : public UVS_WeaponAbility
 {
 	GENERATED_BODY()
 	
+public:
+	UVSAbility_Garlic();
+	
 };

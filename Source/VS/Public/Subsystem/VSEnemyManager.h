@@ -25,8 +25,9 @@ public:
 
 	AActor* SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, const FVector& Location);
 	void ReturnEnemiesToPool(AActor* Enemy);
-
+	
 	int32 GetActiveNormalEnemiesCount() const;
+	int32 GetActiveEliteEnemiesCount() const;
 
 	UPROPERTY()
 	TArray<AActor*> ActiveEnemies;
