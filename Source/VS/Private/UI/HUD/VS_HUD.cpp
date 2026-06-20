@@ -118,6 +118,7 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 	checkf(LevelUpMenuControllerClass, TEXT("LevelUp Menu Controller Class uninitialized, please fill out BP_VS_HUD"));
 	UE_LOG(LogTemp, Warning, TEXT("VS_HUD opening level-up menu with %d skill options."), SkillOptions.Num());
 
+	const bool bCreatedLevelUpWidget = LevelUpWidget == nullptr;
 	if (LevelUpWidget == nullptr)
 	{
 		UUserWidget* Widget = CreateWidget<UUserWidget>(GetWorld(), LevelUpWidgetClass);
@@ -135,11 +136,17 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 	const FWidgetControllerParams WCParams(PC, PS, nullptr, nullptr);
 
 	ULevelUpMenuController* WidgetController = GetLevelUpMenuController(WCParams);
-	// Give the widget its controller before broadcasting options so Blueprint event bindings are ready.
-	LevelUpWidget->SetWidgetController(WidgetController);
+	if (bCreatedLevelUpWidget)
+	{
+		// Give the widget its controller before broadcasting options so Blueprint event bindings are ready.
+		LevelUpWidget->SetWidgetController(WidgetController);
+	}
 	WidgetController->SetSkillOptions(SkillOptions);
 	WidgetController->BroadcastInitialValues();
-	LevelUpWidget->AddToViewport();
+	if (!LevelUpWidget->IsInViewport())
+	{
+		LevelUpWidget->AddToViewport();
+	}
 }
 
 void AVS_HUD::OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill)

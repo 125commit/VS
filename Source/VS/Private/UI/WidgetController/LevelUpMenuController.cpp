@@ -16,11 +16,8 @@ void ULevelUpMenuController::BroadcastInitialValues()
 
 void ULevelUpMenuController::BindCallbacksToDependencies()
 {
-	if (AVS_PlayerController* VSPC = GetVSPC())
-	{
-		// PlayerController owns the level-up roll; this controller translates it into UI card data.
-		VSPC->OnShowLevelUpMenuDelegate.AddUObject(this, &ULevelUpMenuController::SetSkillOptions);
-	}
+	// VS_HUD is the only listener for the player controller's level-up broadcast.
+	// Keeping this controller unbound here prevents reroll from rebroadcasting the same cards twice.
 }
 
 void ULevelUpMenuController::SetSkillOptions(const TArray<FVSAbilityInfo>& InOptions)
