@@ -85,7 +85,7 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 	
 	int32 WeaponCount = 0;
 	int32 PassiveCount = 0;
-
+	
 	// 2. 解析统计当前已占用的武器槽和被动槽
 	for (const FVSOwnedAbilityInfo& OwnedInfo : OwnedAbilities)
 	{
@@ -267,12 +267,17 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 		{
 			// 发放技能或升级
 			ASC->ServerUpgradeAbility(SelectedInfo.AbilityClass);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Server_SelectUpgrade: 无法找到技能配置，或 AbilityClass 为空！Tag: %s"), *SelectedTag.ToString());
+		}
 			
-			// 扣减待处理升级次数
-			VSPS->ConsumePendingLevelUp();
+		// 无论技能是否发放成功，都必须扣减升级次数！否则遇到配置错误时会永久破坏升级队列
+		VSPS->ConsumePendingLevelUp();
 			
-			// 防连发：如果还有升级次数，继续开盲盒
-			if (VSPS->GetPendingLevelUps() > 0)
+		// 防连发：如果还有升级次数，继续开盲盒
+		if (VSPS->GetPendingLevelUps() > 0)
 			{
 				TArray<FGameplayTag> ValidPool = GenerateValidAbilityPool();
 
@@ -305,7 +310,6 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 				Client_ShowLevelUpScreen(Options);
 				return; 
 			}
-		}
 	}
 
 	SetPause(false);
