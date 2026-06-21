@@ -20,6 +20,10 @@ struct FVSAbilityLevelRow
 {
 	GENERATED_BODY()
 	
+	// 升到此级时的效果描述文字
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow|UI")
+	FText LevelDescription;
+	
 	//默认的基础伤害值，具体的在ExecCal中计算
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	float BaseDamage = 0.f;
@@ -105,11 +109,6 @@ struct FVSAbilityInfo
 	// UI 展示：技能名称 ("大蒜")
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|UI")
 	FText Name;
-
-	// UI 展示：每一级的文字描述！
-	// 索引0=1级("对周围造成伤害"), 索引1=2级("范围+20%,伤害+5")
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|UI")
-	TArray<FText> LevelDescriptions; 
 
 	// UI 展示：技能图标
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|UI")

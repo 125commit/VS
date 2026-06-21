@@ -106,12 +106,12 @@ int32 ULevelUpMenuController::GetCurrentLevelForAbilityTag(const FGameplayTag& A
 
 FText ULevelUpMenuController::GetDescriptionForLevel(const FVSAbilityInfo& InAbilityInfo, int32 Level)
 {
-	if (InAbilityInfo.LevelDescriptions.Num() <= 0)
+	if (InAbilityInfo.LevelRows.Num() <= 0)
 	{
 		return FText::GetEmpty();
 	}
 
 	// Level is 1-based, while the description array is 0-based.
-	const int32 DescriptionIndex = FMath::Clamp(Level - 1, 0, InAbilityInfo.LevelDescriptions.Num() - 1);
-	return InAbilityInfo.LevelDescriptions[DescriptionIndex];
+	const int32 DescriptionIndex = FMath::Clamp(Level - 1, 0, InAbilityInfo.LevelRows.Num() - 1);
+	return InAbilityInfo.LevelRows[DescriptionIndex].LevelDescription;
 }
