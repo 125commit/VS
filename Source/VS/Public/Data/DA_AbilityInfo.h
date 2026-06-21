@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 #include "DA_AbilityInfo.generated.h"
 
@@ -16,9 +17,13 @@ class UGameplayAbility; // 或者替换为您的武器基类 UVS_WeaponAbilityBa
 // 技能的基础属性
 // ==========================================================
 USTRUCT(BlueprintType)
-struct FVSAbilityLevelRow
+struct FVSAbilityLevelRow : public FTableRowBase
 {
 	GENERATED_BODY()
+	
+	// 升到此级时的效果描述文字
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow|UI")
+	FText LevelDescription;
 	
 	//默认的基础伤害值，具体的在ExecCal中计算
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
@@ -106,11 +111,6 @@ struct FVSAbilityInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|UI")
 	FText Name;
 
-	// UI 展示：每一级的文字描述！
-	// 索引0=1级("对周围造成伤害"), 索引1=2级("范围+20%,伤害+5")
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|UI")
-	TArray<FText> LevelDescriptions; 
-
 	// UI 展示：技能图标
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|UI")
 	TObjectPtr<const UTexture2D> Icon;
@@ -127,8 +127,9 @@ struct FVSAbilityInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
 	int32 MaxLevel = 5;
 
+	// 技能的具体各级数值表 (每行代表一级)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
-	TArray<FVSAbilityLevelRow> LevelRows;
+	TObjectPtr<UDataTable> LevelTable;
 };
 
 

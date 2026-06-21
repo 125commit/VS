@@ -21,7 +21,7 @@ void AVSWaveDirector::BeginPlay()
 	//初始化 WaveLastSpawnTimes 数组，先占位 (预分配)
 	if (WaveConfig)
 	{
-		WaveLastSpawnTimes.Init(0.f, WaveConfig->Waves.Num());
+		WaveLastSpawnTimes.Init(0.f, WaveConfig->GetWaves().Num());
 	}
 }
 
@@ -44,9 +44,10 @@ void AVSWaveDirector::ProcessSpawn()
 	int32 CurrentEliteCount  = EnemyManager->GetActiveEliteEnemiesCount();
 	
 	
-	for (int32 WaveIndex = 0; WaveIndex < WaveConfig->Waves.Num(); ++WaveIndex)
+	TArray<FWaveSpawnConfig> AllWaves = WaveConfig->GetWaves();
+	for (int32 WaveIndex = 0; WaveIndex < AllWaves.Num(); ++WaveIndex)
 	{
-		const FWaveSpawnConfig& Wave = WaveConfig->Waves[WaveIndex];
+		const FWaveSpawnConfig& Wave = AllWaves[WaveIndex];
 		
 		//如果数组长度还是不够，就用 AddZeroed 进行动态扩容
 		if (WaveIndex >= WaveLastSpawnTimes.Num())
@@ -103,11 +104,19 @@ int32 AVSWaveDirector::TrySpawnEnemiesWave(const FWaveSpawnConfig& Wave, UVSEnem
 	
 	const int32 NeedToSpawn = FMath::Min(FMath::Max(Wave.EnemyNumPerWave, 1),AvailableCount);
 	
+	TSubclassOf<AVSEnemy> EnemyClassToSpawn = nullptr;
+	if (WaveConfig && WaveConfig->EnemyDictionary)
+	{
+		EnemyClassToSpawn = WaveConfig->EnemyDictionary->GetEnemyClass(Wave.EnemyType);
+	}
+	
+	if (!EnemyClassToSpawn) return 0;
+	
 	int32 SpawnCount = 0;
 	for (int32 i = 0; i < NeedToSpawn; ++ i)
 	{
 		const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
-		if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(Wave.EnemyClass, SpawnLocation))
+		if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(EnemyClassToSpawn, SpawnLocation))
 		{
 			if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
 			{

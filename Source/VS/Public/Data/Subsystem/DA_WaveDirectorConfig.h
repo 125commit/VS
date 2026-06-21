@@ -3,16 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
+#include "Engine/DataTable.h"
+#include "Character/VSEnemyType.h"
+#include "Data/Subsystem/DA_EnemyDictionary.h"
 #include "DA_WaveDirectorConfig.generated.h"
 
 USTRUCT(BlueprintType)
-struct FWaveSpawnConfig
+struct FWaveSpawnConfig : public FTableRowBase
 {
     GENERATED_BODY()
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TSubclassOf<AActor> EnemyClass;
+    EVSEnemyType EnemyType = EVSEnemyType::None;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float StartTime = 0.f;
@@ -39,9 +41,16 @@ class VS_API UDA_WaveDirectorConfig : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	
+	// 波次具体配置表
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-    TArray<FWaveSpawnConfig> Waves;
+    TObjectPtr<UDataTable> WavesTable;
+
+	// 怪物种类字典
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TObjectPtr<UDA_EnemyDictionary> EnemyDictionary;
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FWaveSpawnConfig> GetWaves() const;
 	
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     float MaxSpawnRadius = 1400.f;

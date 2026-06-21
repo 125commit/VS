@@ -2,7 +2,7 @@
 #include "Player/VS_PlayerController.h" // 引入 PC
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "AbilitySystem/VS_AttributeSet.h"
-#include "Data/DA_LevelUpInfo.h"
+#include "Data/VSLevelUpData.h"
 #include "Net/UnrealNetwork.h"
 
 AVS_PlayerState::AVS_PlayerState()
@@ -54,7 +54,7 @@ void AVS_PlayerState::AddXP(float BaseXP)
 	// 3. 判定升级
 	if (LevelUpInfo)
 	{
-		int32 TargetLevel = LevelUpInfo->FindLevelForXP(XP); 
+		int32 TargetLevel = FindLevelForXP(XP); 
 		// 记录一下增加经验前的待升级次数
 		int32 OldPending = PendingLevelUps; 
 
@@ -121,8 +121,8 @@ void AVS_PlayerState::CalculateAndBroadcastXPProgress()
 {
 	if (!LevelUpInfo) return;
 
-	float CurrentLevelRequirement = LevelUpInfo->GetXPRequirementForLevel(Level);      
-	float NextLevelRequirement = LevelUpInfo->GetXPRequirementForLevel(Level + 1); 
+	float CurrentLevelRequirement = GetXPRequirementForLevel(Level);      
+	float NextLevelRequirement = GetXPRequirementForLevel(Level + 1); 
 
 	float XPThisLevel = FMath::Max(0.f, XP - CurrentLevelRequirement);
 	float XPRequirementForNextLevel = FMath::Max(0.1f, NextLevelRequirement - CurrentLevelRequirement);
@@ -164,4 +164,56 @@ void AVS_PlayerState::OnRep_KillCount(int32 OldKillCount)
 void AVS_PlayerState::OnRep_Gold(int32 OldGold)
 {
 	OnGoldChangedDelegate.Broadcast(Gold);
+}
+
+int32 AVS_PlayerState::FindLevelForXP(float InXP) const
+{
+	if (!LevelUpInfo) return 1;
+
+	TArray<FVS_LevelUpData*> AllRows;
+	LevelUpInfo->GetAllRows<FVS_LevelUpData>(TEXT("FindLevelForXP"), AllRows);
+
+	if (AllRows.Num() == 0) return 1;
+
+	int32 CheckLevel = 1;
+	while (true)
+	{
+		// Level 1 is index 0. Level 2 is index 1.
+		// We are checking if we have enough XP to reach CheckLevel + 1 (which is index CheckLevel)
+		if (AllRows.IsValidIndex(CheckLevel) && AllRows[CheckLevel])
+		{
+			FVS_LevelUpData* NextLevelRow = AllRows[CheckLevel];
+			if (InXP >= NextLevelRow->XPRequirement)
+			{
+				CheckLevel++;
+			}
+			else
+			{
+				return CheckLevel;
+			}
+		}
+		else
+		{
+			// Could not find next level, reached max level
+			return CheckLevel;
+		}
+	}
+}
+
+float AVS_PlayerState::GetXPRequirementForLevel(int32 TargetLevel) const
+{
+	if (!LevelUpInfo) return 999999.f;
+
+	TArray<FVS_LevelUpData*> AllRows;
+	LevelUpInfo->GetAllRows<FVS_LevelUpData>(TEXT("GetXPRequirementForLevel"), AllRows);
+
+	// Level 1 is index 0
+	int32 TargetIndex = TargetLevel - 1;
+	
+	if (AllRows.IsValidIndex(TargetIndex) && AllRows[TargetIndex])
+	{
+		return AllRows[TargetIndex]->XPRequirement;
+	}
+	
+	return 999999.f;
 }

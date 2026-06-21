@@ -5,7 +5,7 @@
 #include "AbilitySystemInterface.h"
 #include "VS_PlayerState.generated.h"
 
-class UDA_LevelUpInfo;
+class UDataTable;
 class UAbilitySystemComponent;
 class UVS_AttributeSet;
 
@@ -81,8 +81,10 @@ protected:
 	TObjectPtr<UVS_AttributeSet> AttributeSet;
 
 	// 升级数据表 (策划配置：每级所需经验)
-	UPROPERTY(EditDefaultsOnly, Category = "LevelUp Data")
-	TObjectPtr<UDA_LevelUpInfo> LevelUpInfo;
+	UPROPERTY(EditDefaultsOnly, Category = "LevelUp Data")	TObjectPtr<UDataTable> LevelUpInfo;
+	
+	int32 FindLevelForXP(float InXP) const;
+	float GetXPRequirementForLevel(int32 TargetLevel) const;
 
 	// -------------------------------------------------------------
 	// 状态数据 (需网络同步)
