@@ -5,7 +5,7 @@
 
 #include "Pool/VSObjectPool.h"
 #include "Character/VSEnemy.h"
-#include "Data/Subsystem/DA_EnemyDropTable.h"
+#include "Data/Subsystem/VSDropEntry.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/VSDropManager.h"
@@ -117,7 +117,7 @@ void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
 	UVSDropManager* DropManager = GetWorld()->GetSubsystem<UVSDropManager>();
 	if (!DropManager) return;
 
-	if (UDA_EnemyDropTable* DropTable = Enemy->GetDropTable())
+	if (UDataTable* DropTable = Enemy->GetDropTable())
 	{
 		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
 	}

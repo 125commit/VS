@@ -6,7 +6,7 @@
 #include "Character/VSCharacterBase.h"
 #include "VSEnemy.generated.h"
 
-class UDA_EnemyDropTable;
+class UDataTable;
 
 /**
  * 
@@ -23,7 +23,7 @@ public:
 	FORCEINLINE bool GetIsElite() const {return bIsElite;}
 	FORCEINLINE bool IsDead() const {return bIsDead;}
 	
-	FORCEINLINE UDA_EnemyDropTable* GetDropTable() const { return DropTable; }
+	FORCEINLINE UDataTable* GetDropTable() const { return DropTable; }
 	
 	
 	//设置“移动”速度
@@ -63,7 +63,7 @@ protected:
 	float BodyScale = 1.f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Drop")
-	TObjectPtr<UDA_EnemyDropTable> DropTable;
+	TObjectPtr<UDataTable> DropTable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	bool bIsElite = false;

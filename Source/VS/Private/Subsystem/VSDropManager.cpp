@@ -7,7 +7,8 @@
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 #include "Data/Subsystem/DA_DropItems.h"
-#include "Data/Subsystem/DA_EnemyDropTable.h"
+#include "Data/Subsystem/VSDropEntry.h"
+#include "Engine/DataTable.h"
 
 
 void UVSDropManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -19,7 +20,7 @@ void UVSDropManager::Initialize(FSubsystemCollectionBase& Collection)
 	DropSettings = Cast<UDA_DropItems>(StaticLoadObject(
 		UDA_DropItems::StaticClass(),
 		nullptr,
-		TEXT("/Game/Data/DA_DropItems.DA_DropItems")
+		TEXT("/Game/Data/DA/DA_DropItems.DA_DropItems")
 	));
 	
 	if (!DropSettings)
@@ -71,13 +72,32 @@ TStatId UVSDropManager::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UVSDropManager, STATGROUP_Tickables);
 }
 
-void UVSDropManager::SpawnDrop(const FVector& Location, const UDA_EnemyDropTable* DropTable)
+void UVSDropManager::SpawnDrop(const FVector& Location, const UDataTable* DropTable)
 {
 	UWorld* World = GetWorld();
 	if (!World || !DropPool || !DropSettings || !DropTable) return;
 
+	TArray<FDropEntry*> AllRows;
+	DropTable->GetAllRows<FDropEntry>(TEXT("SpawnDrop"), AllRows);
+
+	if (AllRows.Num() == 0) return;
+
 	FDropEntry SelectedEntry;
-	if (!DropTable->IsDrop(SelectedEntry)) return;
+	bool bFound = false;
+
+	for (const FDropEntry* EntryRow : AllRows)
+	{
+		if (EntryRow->DropType == EVSDropType::None) continue;
+
+		if (EntryRow->bGuaranteed || FMath::FRand() <= EntryRow->DropChance)
+		{
+			SelectedEntry = *EntryRow;
+			bFound = true;
+			break;
+		}
+	}
+
+	if (!bFound) return;
 
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
 	const FDropTypeDefinition DropTypeDefinition = DropSettings->FindDefinition(SelectedEntry.DropType);

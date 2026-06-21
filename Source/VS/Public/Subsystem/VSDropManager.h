@@ -9,7 +9,7 @@
 #include "VSDropManager.generated.h"
 
 class AVS_PlayerState;
-class UDA_EnemyDropTable;
+class UDataTable;
 class UVSObjectPool;
 struct FDropTypeDefinition;
 
@@ -25,7 +25,7 @@ public:
 	virtual TStatId GetStatId() const override;
 	virtual bool IsTickableInEditor() const override { return false; }
 
-	void SpawnDrop(const FVector& Location, const UDA_EnemyDropTable* DropTable);
+	void SpawnDrop(const FVector& Location, const UDataTable* DropTable);
 	void TryPickUp(float DeltaTime);
 
 protected:
