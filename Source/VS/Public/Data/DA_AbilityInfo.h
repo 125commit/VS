@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
 #include "DA_AbilityInfo.generated.h"
 
@@ -16,7 +17,7 @@ class UGameplayAbility; // 或者替换为您的武器基类 UVS_WeaponAbilityBa
 // 技能的基础属性
 // ==========================================================
 USTRUCT(BlueprintType)
-struct FVSAbilityLevelRow
+struct FVSAbilityLevelRow : public FTableRowBase
 {
 	GENERATED_BODY()
 	
@@ -126,8 +127,9 @@ struct FVSAbilityInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
 	int32 MaxLevel = 5;
 
+	// 技能的具体各级数值表 (每行代表一级)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
-	TArray<FVSAbilityLevelRow> LevelRows;
+	TObjectPtr<UDataTable> LevelTable;
 };
 
 

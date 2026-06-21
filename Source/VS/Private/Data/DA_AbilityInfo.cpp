@@ -1,4 +1,4 @@
-﻿#include "Data/DA_AbilityInfo.h"
+#include "Data/DA_AbilityInfo.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/VS_AttributeSet.h"
 
@@ -26,23 +26,26 @@ FVSAbilityInfo UDA_AbilityInfo::FindAbilityInfoForTag(const FGameplayTag& Abilit
 FVSAbilityLevelRow UDA_AbilityInfo::GetLevelRow(const FGameplayTag& AbilityTag, int32 Level, bool bLogNotFound) const
 {
 	FVSAbilityInfo Info = FindAbilityInfoForTag(AbilityTag, bLogNotFound);
-	if (!Info.AbilityTag.IsValid())
+	if (!Info.AbilityTag.IsValid() || !Info.LevelTable)
 	{
 		return FVSAbilityLevelRow();
 	}
 	
-	const int32 LevelIndex = Level -1;
-	if (!Info.LevelRows.IsValidIndex(LevelIndex))
+	TArray<FVSAbilityLevelRow*> AllRows;
+	Info.LevelTable->GetAllRows<FVSAbilityLevelRow>(TEXT("GetLevelRow"), AllRows);
+	
+	const int32 LevelIndex = Level - 1;
+	if (!AllRows.IsValidIndex(LevelIndex) || !AllRows[LevelIndex])
 	{
 		if (bLogNotFound)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Ability [%s] Level [%d] 超出 LevelRows 范围 (Count=%d)"),
-				*AbilityTag.ToString(), Level, Info.LevelRows.Num());
+			UE_LOG(LogTemp, Warning, TEXT("Ability [%s] Level [%d] 超出 LevelTable 范围 (Count=%d)"),
+				*AbilityTag.ToString(), Level, AllRows.Num());
 		}
 		return FVSAbilityLevelRow();
 	}
 	
-	return Info.LevelRows[LevelIndex];
+	return *AllRows[LevelIndex];
 }
 
 float UDA_AbilityInfo::GetPassiveMagnitude(const FGameplayTag& AbilityTag, int32 Level, bool bLogNotFound) const
