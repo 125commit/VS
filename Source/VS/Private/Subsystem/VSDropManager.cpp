@@ -4,6 +4,7 @@
 #include "Pool/VSObjectPool.h"
 #include "Actor/VSDropItem.h"
 #include "Player/VS_PlayerState.h"
+#include "Player/VS_PlayerController.h"
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 #include "Data/Subsystem/DA_DropItems.h"
@@ -175,6 +176,10 @@ void UVSDropManager::HandleCollectingDrop(AVSDropItem* DropItem, AVS_PlayerState
 		break;
 
 	case EVSDropType::Box:
+		if (AVS_PlayerController* PC = Cast<AVS_PlayerController>(PlayerState->GetPlayerController()))
+		{
+			PC->Server_ProcessChestPickup(FMath::RoundToInt(DropItem->GetDropValue()));
+		}
 		break;
 
 	default:
