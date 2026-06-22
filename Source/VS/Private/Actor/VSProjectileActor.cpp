@@ -22,7 +22,9 @@ AVSProjectileActor::AVSProjectileActor()
 
 void AVSProjectileActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 {
-	ProjectileSpeed = InitParams.ProjectileSpeed;
+	// CHANGED: 原先 ProjectileSpeed = 表基础速度 → 改为乘上该级速度倍率
+	// 原因：支持 FireWand 按等级提升飞行速度（倍率默认 1.0，不影响其它武器）
+	ProjectileSpeed = InitParams.ProjectileSpeed * FMath::Max(0.f, InitParams.SpeedMultiplier);
 	TargetEnemy = InitParams.TargetEnemy;
 	bStopOnHit = false;
 	HitEnemies.Empty();

@@ -35,8 +35,8 @@ public:
 	FGameplayTag Abilities_Passive_Spellbinder; // 咒缚盒
 	FGameplayTag Abilities_Passive_EmptyTome;   // 空白之书
 	FGameplayTag Abilities_Passive_Spinach;     // 菠菜
-	
-	FGameplayTag Damage;
+
+	FGameplayTag Data_Passive_Magnitude;
 	
 protected:
 	static FVSGameplayTags GameplayTags;

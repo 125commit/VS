@@ -12,11 +12,11 @@ UVS_AttributeSet::UVS_AttributeSet()
 	// 这里的默认值仅作底层兜底。对于倍率属性，兜底值设为 1.f ，以免发生乘 0 变 0 的BUG。
 	InitHealth(100.f);
 	InitMaxHealth(100.f);
-	InitMight(1.f);          // 伤害倍率默认 1.0
+	InitDamageMight(1.f);          // 伤害倍率默认 1.0
 	InitMagnetRadius(100.f);
-	InitWeaponCooldown(1.f);
-	InitWeaponDuration(1.f);
-	InitWeaponArea(1.f);          // 范围倍率默认 1.0
+	InitCooldownMult(1.f);
+	InitDurationMult(1.f);
+	InitAreaMult(1.f);          // 范围倍率默认 1.0
 	InitGreedMultiplier(1.f);     // 经验倍率默认 1.0
 	
 	// 元属性初始化
@@ -28,11 +28,11 @@ void UVS_AttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	// 注册属性 必须使用 COND_None 和 REPNOTIFY_Always，保证预测回滚和 UI 刷新强制执行！
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, Might, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, DamageMight, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, MagnetRadius, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponCooldown, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponDuration, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, WeaponArea, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, CooldownMult, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, DurationMult, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, AreaMult, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UVS_AttributeSet, GreedMultiplier, COND_None, REPNOTIFY_Always);
 }
 // -------------------------------------------------------------
@@ -46,25 +46,25 @@ void UVS_AttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealt
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, MaxHealth, OldMaxHealth);
 }
-void UVS_AttributeSet::OnRep_Might(const FGameplayAttributeData& OldMight) const
+void UVS_AttributeSet::OnRep_DamageMight(const FGameplayAttributeData& OldDamageMight) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, Might, OldMight);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, DamageMight, OldDamageMight);
 }
 void UVS_AttributeSet::OnRep_MagnetRadius(const FGameplayAttributeData& OldMagnetRadius) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, MagnetRadius, OldMagnetRadius);
 }
-void UVS_AttributeSet::OnRep_WeaponCooldown(const FGameplayAttributeData& OldWeaponCooldown) const
+void UVS_AttributeSet::OnRep_CooldownMult(const FGameplayAttributeData& OldCooldownMult) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, WeaponCooldown, OldWeaponCooldown);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, CooldownMult, OldCooldownMult);
 }
-void UVS_AttributeSet::OnRep_WeaponDuration(const FGameplayAttributeData& OldWeaponDuration) const
+void UVS_AttributeSet::OnRep_DurationMult(const FGameplayAttributeData& OldDurationMult) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, WeaponDuration, OldWeaponDuration);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, DurationMult, OldDurationMult);
 }
-void UVS_AttributeSet::OnRep_WeaponArea(const FGameplayAttributeData& OldWeaponArea) const
+void UVS_AttributeSet::OnRep_AreaMult(const FGameplayAttributeData& OldAreaMult) const
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, WeaponArea, OldWeaponArea);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UVS_AttributeSet, AreaMult, OldAreaMult);
 }
 void UVS_AttributeSet::OnRep_GreedMultiplier(const FGameplayAttributeData& OldGreedMultiplier) const
 {

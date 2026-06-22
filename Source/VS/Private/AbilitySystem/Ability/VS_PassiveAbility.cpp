@@ -48,12 +48,8 @@ void UVS_PassiveAbility::ApplyPassiveEffect()
 		ActiveEffectHandle.Invalidate();
 	}
 
-	// 2. 查表获取当前等级对应的最新数值
-	float PassiveValue = 0.0f;
-	if (GlobalAbilityInfoData)
-	{
-		PassiveValue = GlobalAbilityInfoData->GetPassiveMagnitude(AbilityTag, GetAbilityLevel());
-	}
+	// 2. 通过 CT 获取数值
+	const float PassiveValue = PassiveMagnitude.GetValueAtLevel(GetAbilityLevel());
 
 	// 3. 构建新的 GE，将数值通过 SetByCaller 塞进去
 	FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();

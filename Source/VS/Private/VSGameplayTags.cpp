@@ -76,9 +76,8 @@ void FVSGameplayTags::InitializeNativeGameplayTags()
 		FString("被动：菠菜 (伤害加成)")
 	);
 	
-	GameplayTags.Damage = Manager.AddNativeGameplayTag(
-		FName("Damage"),
-		FString("造成伤害")
-	);
+	GameplayTags.Data_Passive_Magnitude = Manager.AddNativeGameplayTag(
+		FName("Data.Passive.Magnitude"), 
+		FString("被动 SetByCaller 数值通道"));
 	
 }

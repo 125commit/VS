@@ -53,29 +53,29 @@ public:
 	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, MaxHealth);
 	
 	// 3. 基础伤害倍率
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Might, Category = "Vital Attributes")
-	FGameplayAttributeData Might;
-	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, Might);
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_DamageMight, Category = "Vital Attributes")
+	FGameplayAttributeData DamageMight;
+	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, DamageMight);
 	
 	// 4. 拾取范围(专供 DropManager 纯数学轮询比对)
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_MagnetRadius, Category = "Vital Attributes")
 	FGameplayAttributeData MagnetRadius;
 	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, MagnetRadius);
 	
-	// 5. 武器冷却
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponCooldown, Category = "Vital Attributes")
-	FGameplayAttributeData WeaponCooldown;
-	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, WeaponCooldown);
+	// 5. 武器冷却倍率
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CooldownMult, Category = "Vital Attributes")
+	FGameplayAttributeData CooldownMult;
+	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, CooldownMult);
 	
-	// 6.武器持续时间
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponDuration , Category = "Vital Attributes")
-	FGameplayAttributeData WeaponDuration ;
-	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, WeaponDuration );
+	// 6.武器持续时间倍率
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_DurationMult , Category = "Vital Attributes")
+	FGameplayAttributeData DurationMult ;
+	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, DurationMult );
 	
 	//7.武器范围倍率
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_WeaponArea, Category = "Vital Attributes")
-	FGameplayAttributeData WeaponArea;
-	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, WeaponArea);
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_AreaMult, Category = "Vital Attributes")
+	FGameplayAttributeData AreaMult;
+	ATTRIBUTE_ACCESSORS(UVS_AttributeSet, AreaMult);
 
 	//8.贪婪/经验加成(经验获取加成比)
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_GreedMultiplier, Category = "Vital Attributes")
@@ -89,15 +89,15 @@ public:
 	UFUNCTION()
 	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
 	UFUNCTION()
-	void OnRep_Might(const FGameplayAttributeData& OldMight) const;
+	void OnRep_DamageMight(const FGameplayAttributeData& OldDamageMight) const;
 	UFUNCTION()
 	void OnRep_MagnetRadius(const FGameplayAttributeData& OldMagnetRadius) const;
 	UFUNCTION()
-	void OnRep_WeaponCooldown(const FGameplayAttributeData& OldWeaponCooldown) const;
+	void OnRep_CooldownMult(const FGameplayAttributeData& OldCooldownMult) const;
 	UFUNCTION()
-	void OnRep_WeaponDuration(const FGameplayAttributeData& OldWeaponDuration) const;
+	void OnRep_DurationMult(const FGameplayAttributeData& OldDurationMult) const;
 	UFUNCTION()
-	void OnRep_WeaponArea(const FGameplayAttributeData& OldWeaponArea) const;
+	void OnRep_AreaMult(const FGameplayAttributeData& OldAreaMult) const;
 	UFUNCTION()
 	void OnRep_GreedMultiplier(const FGameplayAttributeData& OldGreedMultiplier) const;
 };

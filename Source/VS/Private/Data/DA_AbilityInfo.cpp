@@ -48,10 +48,6 @@ FVSAbilityLevelRow UDA_AbilityInfo::GetLevelRow(const FGameplayTag& AbilityTag, 
 	return *AllRows[LevelIndex];
 }
 
-float UDA_AbilityInfo::GetPassiveMagnitude(const FGameplayTag& AbilityTag, int32 Level, bool bLogNotFound) const
-{
-	return GetLevelRow(AbilityTag, Level, bLogNotFound).PassiveMagnitude;
-}
 
 float UDA_AbilityInfo::GetAttributeMultiplier(const UAbilitySystemComponent* ASC, const FGameplayAttribute& Attribute, float DefaultValue)
 {
@@ -81,15 +77,17 @@ FVSAbilityRuntimeStats UDA_AbilityInfo::ComputeAbilityStats(const FGameplayTag& 
 	Stats.BaseDamage = Row.BaseDamage;
 	Stats.bNoCooldown = bEvolvedNoCooldown;
 	
-	const float CooldownMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetWeaponCooldownAttribute(), 1.f);
-	const float DurationMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetWeaponDurationAttribute(), 1.f);
-	const float AreaMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetWeaponAreaAttribute(), 1.f);
+	const float CooldownMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetCooldownMultAttribute(), 1.f);
+	const float DurationMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetDurationMultAttribute(), 1.f);
+	const float AreaMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetAreaMultAttribute(), 1.f);
 	
 	Stats.Cooldown        = SanitizeCooldown(Row.Cooldown * CooldownMult);
 	Stats.Duration        = FMath::Max(0.f, Row.Duration * DurationMult);
 	Stats.Area            = SanitizeArea(Row.Area * AreaMult);
 	Stats.ProjectileCount = FMath::Max(1, Row.ProjectileCount);
 	Stats.ProjectileSpeed = FMath::Max(0.f, Row.ProjectileSpeed);
+	// NOTE: 速度倍率暂不挂任何属性加成，直接取表值；如需被动影响转速，可在此乘对应 Mult
+	Stats.SpeedMultiplier = FMath::Max(0.f, Row.SpeedMultiplier);
 	
 	if (Stats.bNoCooldown)
 	{
