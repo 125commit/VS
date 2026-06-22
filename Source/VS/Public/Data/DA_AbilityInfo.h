@@ -44,11 +44,12 @@ struct FVSAbilityLevelRow : public FTableRowBase
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	float ProjectileSpeed = 600.f;
-	
-	// 被动：ApplyPassiveEffect 通过 SetByCaller 传给 GE 的数值
-	// （如菠菜伤害加成、空心之心加血等，具体语义由被动 GE 决定）
+
+	// 速度倍率（1.0 = 100%）：圣经用作转速倍率、FireWand 用作飞行速度倍率
+	// 原因：策划逐级直接填倍率（如 1.3 = +30%），与 Area 的填法对称，免去换算
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
-	float PassiveMagnitude = 0.f;
+	float SpeedMultiplier = 1.f;
+
 };
 
 // ==========================================================
@@ -77,6 +78,10 @@ struct FVSAbilityRuntimeStats
 	
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
 	float ProjectileSpeed = 600.f;
+	
+	// 速度倍率（1.0 = 100%）：由表值经属性加成计算后下发给武器 Actor
+	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
+	float SpeedMultiplier = 1.f;
 	
 	// 进化：无 CD 连发
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
@@ -156,8 +161,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AbilityInformation")
 	FVSAbilityLevelRow GetLevelRow(const FGameplayTag& AbilityTag, int32 Level, bool bLogNotFound = false) const;
 	
-	UFUNCTION(BlueprintCallable, Category = "AbilityInformation")
-	float GetPassiveMagnitude(const FGameplayTag& AbilityTag, int32 Level, bool bLogNotFound = false) const;
 
 	//计算技能的基础属性
 	UFUNCTION(BlueprintCallable, Category = "AbilityInformation")

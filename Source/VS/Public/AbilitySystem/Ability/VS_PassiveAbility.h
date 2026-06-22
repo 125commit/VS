@@ -5,7 +5,7 @@
 #include "VS_PassiveAbility.generated.h"
 
 class UDA_AbilityInfo;
-
+struct FScalableFloat;
 /**
  * 被动技能基类
  * 激活后常驻后台，监听升级事件并动态刷新自身的属性加成 GE
@@ -34,9 +34,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Passive")
 	TSubclassOf<UGameplayEffect> PassiveEffect;
 
-	// 在蓝图里配置：SetByCaller 传值用的标签 (如 Data.Passive.Value)
+	// 在蓝图里配置：SetByCaller 传值用的标签 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Passive")
 	FGameplayTag SetByCallerTag;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Passive")
+	FScalableFloat PassiveMagnitude;
 
 private:
 	// 记录当前挂在身上的 GE 句柄，方便升级时移除并刷新

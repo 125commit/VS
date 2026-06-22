@@ -34,6 +34,10 @@ struct FVSWeaponInitParams
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	float ProjectileSpeed = 600.f;
 	
+	// 速度倍率（1.0 = 100%）：圣经按级缩放转速、FireWand 按级缩放飞行速度
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	float SpeedMultiplier = 1.f;
+	
 	/** Projectile的飞行模式：由 GA 在 spawn 前设置 */
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	EVSProjectileMovementMode MovementMode = EVSProjectileMovementMode::Straight;

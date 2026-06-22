@@ -51,6 +51,14 @@ protected:
 	UFUNCTION()
 	virtual void OnWeaponFire();
 	
+	/**
+	 * 职责：返回两轮开火之间的等待间隔
+	 * 原因：不同武器的"开火节奏"语义不同（魔杖=发射间隔、大蒜=周期伤害间隔、圣经=在场+空窗）
+	 *       把这个会变的策略抽成虚函数，循环逻辑留在父类共享，子类只需重写本函数即可定制节奏，
+	 *       避免把某个武器的特例硬塞进父类而污染其它武器
+	 */
+	virtual float GetNextFireDelay(const FVSAbilityRuntimeStats& Stats) const;
+	
 	virtual void ExecuteFire(const FVSAbilityRuntimeStats& Stats);
 	
 	/** BaseDamage(表) × Might(AttributeSet) */

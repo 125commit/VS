@@ -33,12 +33,19 @@ void UVS_WeaponAbility::OnWeaponFire()
 	// Start fire
 	ExecuteFire(Stats);
 	
-	//Schedule Next Fire
-	const float Delay = Stats.bNoCooldown ? 0.f : Stats.Cooldown;
+	// CHANGED: 原先固定 Delay = Cooldown → 改为走虚函数 GetNextFireDelay
+	// 原因：让子类（如圣经）能定制开火节奏，而不破坏父类循环与其它武器
+	const float Delay = GetNextFireDelay(Stats);
 	
 	UAbilityTask_WaitDelay* DelayTask = UAbilityTask_WaitDelay::WaitDelay(this, Delay);
 	DelayTask->OnFinish.AddDynamic(this, &UVS_WeaponAbility::OnWeaponFire);
 	DelayTask->ReadyForActivation();
+}
+
+float UVS_WeaponAbility::GetNextFireDelay(const FVSAbilityRuntimeStats& Stats) const
+{
+	// 默认节奏：发射/周期间隔 = Cooldown（进化无冷却时为 0），保持其它武器原有行为不变
+	return Stats.bNoCooldown ? 0.f : Stats.Cooldown;
 }
 
 void UVS_WeaponAbility::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
@@ -97,6 +104,8 @@ FVSWeaponInitParams UVS_WeaponAbility::MakeBaseWeaponParams(const FVSAbilityRunt
 	Params.Area = Stats.Area;
 	Params.Duration = Stats.Duration;
 	Params.ProjectileSpeed = Stats.ProjectileSpeed > 0.f ? Stats.ProjectileSpeed : 600.f;
+	// 速度倍率兜底为 1.0，避免表未配时把速度归零
+	Params.SpeedMultiplier = Stats.SpeedMultiplier > 0.f ? Stats.SpeedMultiplier : 1.f;
 
 	
 	return Params;
