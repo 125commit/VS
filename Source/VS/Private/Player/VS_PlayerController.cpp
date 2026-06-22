@@ -319,7 +319,7 @@ void AVS_PlayerController::Server_SelectUpgrade_Implementation(FGameplayTag Sele
 // 服务端黑盒：宝箱管线
 // ==========================================================
 
-void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
+void AVS_PlayerController::Server_ProcessChestPickup_Implementation(int32 MaxItems)
 {
 	SetPause(true);
 
@@ -333,7 +333,9 @@ void AVS_PlayerController::Server_ProcessChestPickup_Implementation()
 		AwardedTag = ValidPool[RandomIndex];
 	}
 
-	int32 GoldAmount = FMath::RandRange(100, 500);
+	// 算法：以 MaxItems 为最大值，随机奖励一半到满额的金币
+	int32 SafeMax = FMath::Max(1, MaxItems);
+	int32 GoldAmount = FMath::RandRange(FMath::Max(1, SafeMax / 2), SafeMax);
 
 	AVS_PlayerState* VSPS = GetPlayerState<AVS_PlayerState>();
 	if (VSPS && AbilityInfoData)

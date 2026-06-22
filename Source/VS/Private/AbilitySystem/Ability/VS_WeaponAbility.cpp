@@ -55,7 +55,7 @@ void UVS_WeaponAbility::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
 
 float UVS_WeaponAbility::ComputeFinalDamage(float BaseDamage) const
 {
-	const float Might = GetAttributeValue(UVS_AttributeSet::GetMightAttribute());
+	const float Might = GetAttributeValue(UVS_AttributeSet::GetDamageMightAttribute());
 	return BaseDamage * Might;
 }
 

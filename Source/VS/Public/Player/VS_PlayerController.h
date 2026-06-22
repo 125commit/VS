@@ -86,8 +86,8 @@ public:
 	void Server_SelectUpgrade(FGameplayTag SelectedTag);
 
 	// 【局内：宝箱管线】
-	UFUNCTION(Server, Reliable)
-	void Server_ProcessChestPickup();
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category="VS|LevelUp")
+	void Server_ProcessChestPickup(int32 MaxItems);
 
 	// 【局外管线】
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="VS|MainMenu")

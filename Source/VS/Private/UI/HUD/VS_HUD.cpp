@@ -162,8 +162,11 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 
 void AVS_HUD::OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill)
 {
-	checkf(BoxWidgetClass, TEXT("Box Widget Class uninitialized, please fill out BP_VS_HUD"));
-	checkf(BoxMenuControllerClass, TEXT("Box Menu Controller Class uninitialized, please fill out BP_VS_HUD"));
+	if (!BoxWidgetClass || !BoxMenuControllerClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Box Widget Class or Controller Class uninitialized, please fill out BP_VS_HUD"));
+		return;
+	}
 
 	if (BoxWidget == nullptr)
 	{
