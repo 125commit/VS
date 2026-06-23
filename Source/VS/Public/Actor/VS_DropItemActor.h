@@ -4,30 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "VSDropItem.generated.h"
+#include "Data/Subsystem/VSDropData.h"
+#include "VS_DropItemActor.generated.h"
 
 class UStaticMeshComponent;
 
-UENUM(BlueprintType)
-enum class EVSDropType : uint8
-{
-	None,
-	XPSmall,
-	XPLarge, 
-	Gold,
-	Turkey,
-	Box,
-};
-
-
-
 UCLASS()
-class VS_API AVSDropItem : public AActor
+class VS_API AVS_DropItemActor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
-	AVSDropItem();
+	AVS_DropItemActor();
 
 public:
 	FORCEINLINE EVSDropType GetDropType() const { return DropType; }

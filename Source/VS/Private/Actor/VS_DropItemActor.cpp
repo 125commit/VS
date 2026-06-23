@@ -1,11 +1,10 @@
 // LAvid
 
-
-#include "Actor/VSDropItem.h"
+#include "Actor/VS_DropItemActor.h"
 #include "Components/StaticMeshComponent.h"
 
 // Sets default values
-AVSDropItem::AVSDropItem()
+AVS_DropItemActor::AVS_DropItemActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	
@@ -17,7 +16,7 @@ AVSDropItem::AVSDropItem()
 	SetActorHiddenInGame(true);
 }
 
-void AVSDropItem::ActivateDrop(EVSDropType InDropType, float InValue)
+void AVS_DropItemActor::ActivateDrop(EVSDropType InDropType, float InValue)
 {
 	if (InDropType == EVSDropType::None)
 	{
@@ -40,16 +39,10 @@ void AVSDropItem::ActivateDrop(EVSDropType InDropType, float InValue)
 	}
 }
 
-void AVSDropItem::DeActivateDrop()
+void AVS_DropItemActor::DeActivateDrop()
 {
 	DropType = EVSDropType::None;
 	DropValue = 0.f;
 	bIsActive = false;
 	SetActorHiddenInGame(true);
-	
 }
-
-
-
-
-

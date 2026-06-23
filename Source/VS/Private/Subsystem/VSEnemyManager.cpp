@@ -5,10 +5,10 @@
 
 #include "Pool/VSObjectPool.h"
 #include "Character/VSEnemy.h"
-#include "Data/Subsystem/VSDropEntry.h"
+#include "Data/Subsystem/VSDropData.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "Subsystem/VSDropManager.h"
+#include "Subsystem/VS_DropSubsystem.h"
 
 
 void UVSEnemyManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -39,7 +39,7 @@ void UVSEnemyManager::Deinitialize()
 	Super::Deinitialize();
 }
 
-//追踪 EnemyManager 使用 Tick 的性能消耗
+//追踪 EnemyManager 使用 Tick 的性能消�?
 TStatId UVSEnemyManager::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UVSEnemyManager, STATGROUP_Tickables);
@@ -114,7 +114,7 @@ void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
 {
 	if (!Enemy || !ActiveEnemies.Contains(Enemy)) return;
 
-	UVSDropManager* DropManager = GetWorld()->GetSubsystem<UVSDropManager>();
+	UVS_DropSubsystem* DropManager = GetWorld()->GetSubsystem<UVS_DropSubsystem>();
 	if (!DropManager) return;
 
 	if (UDataTable* DropTable = Enemy->GetDropTable())
@@ -133,7 +133,7 @@ void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
 
 	const FVector PlayerLoc = Player->GetActorLocation();
 
-	//避免遍历时把敌人放回池中(死亡)，所以先创建一个本地副本
+	//避免遍历时把敌人放回池中(死亡)，所以先创建一个本地副�?
 	const TArray<AActor*> EnemiesSnapshot = ActiveEnemies;
 	for (AActor* EnemyActor : EnemiesSnapshot)
 	{
