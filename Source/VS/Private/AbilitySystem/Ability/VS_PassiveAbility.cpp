@@ -1,7 +1,7 @@
 #include "AbilitySystem/Ability/VS_PassiveAbility.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 
 UVS_PassiveAbility::UVS_PassiveAbility()
 {

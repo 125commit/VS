@@ -1,4 +1,4 @@
-#include "UI/HUD/VS_HUD.h"
+﻿#include "UI/HUD/VS_HUD.h"
 
 #include "Blueprint/UserWidget.h"
 #include "UI/Widget/VS_UserWidget.h"
@@ -160,7 +160,7 @@ void AVS_HUD::OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions)
 	}
 }
 
-void AVS_HUD::OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill)
+void AVS_HUD::OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill, bool bIsEvolution, const FVSAbilityInfo& EvolvedSkillInfo)
 {
 	if (!BoxWidgetClass || !BoxMenuControllerClass)
 	{

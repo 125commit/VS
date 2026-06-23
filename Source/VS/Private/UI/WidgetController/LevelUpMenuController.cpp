@@ -82,6 +82,22 @@ FVSLevelUpCardInfo ULevelUpMenuController::BuildCardInfo(const FVSAbilityInfo& I
 	CardInfo.NextLevel = FMath::Clamp(CardInfo.CurrentLevel + 1, 1, InAbilityInfo.MaxLevel);
 	CardInfo.bIsNewAbility = CardInfo.CurrentLevel <= 0;
 	CardInfo.LevelDescription = GetDescriptionForLevel(InAbilityInfo, CardInfo.NextLevel);
+
+	// 预测是否触发进化
+	if (AVS_PlayerController* VSPC = GetVSPC())
+	{
+		if (VSPC->AbilityInfoData)
+		{
+			FGameplayTag EvolvedTag = VSPC->AbilityInfoData->CheckIfCausesEvolution(InAbilityInfo.AbilityTag, CardInfo.NextLevel, GetVSASC());
+			if (EvolvedTag.IsValid())
+			{
+				CardInfo.bWillCauseEvolution = true;
+				CardInfo.EvolvedAbilityInfo = VSPC->AbilityInfoData->FindAbilityInfoForTag(EvolvedTag);
+				UE_LOG(LogTemp, Warning, TEXT("Level-up card %s WILL CAUSE EVOLUTION to %s!"), *CardInfo.AbilityTag.ToString(), *EvolvedTag.ToString());
+			}
+		}
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("Level-up card %s current level %d next level %d."),
 		*CardInfo.AbilityTag.ToString(), CardInfo.CurrentLevel, CardInfo.NextLevel);
 

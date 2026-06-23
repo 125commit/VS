@@ -2,7 +2,7 @@
 
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "AbilitySystem/VS_AttributeSet.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "Player/VS_PlayerController.h"
 #include "Player/VS_PlayerState.h"
 
@@ -21,7 +21,15 @@ void UVS_WidgetController::BroadcastInitialValues()
 
 void UVS_WidgetController::BindCallbacksToDependencies()
 {
-	
+	if (UVS_AbilitySystemComponent* VSASC = GetVSASC())
+	{
+		VSASC->OnWeaponEvolved.AddDynamic(this, &UVS_WidgetController::WeaponEvolvedDelegate_Broadcast);
+	}
+}
+
+void UVS_WidgetController::WeaponEvolvedDelegate_Broadcast(const FGameplayTag& OldTag, const FGameplayTag& NewTag)
+{
+	WeaponEvolvedDelegate.Broadcast(OldTag, NewTag);
 }
 
 void UVS_WidgetController::BroadcastAbilityInfo()

@@ -1,21 +1,21 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "GameplayTagContainer.h"
-#include "Data/DA_AbilityInfo.h" 
+#include "Data/VSAbilityInfoData.h" 
 #include "VS_PlayerController.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
-class UDA_AbilityInfo;
+class UVSAbilityInfoData;
 
 // ==========================================================
 // 客户端喇叭：原生多播委托
 // ==========================================================
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnShowLevelUpMenuSignature, const TArray<FVSAbilityInfo>& /*SkillOptions*/);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnShowChestMenuSignature, int32 /*GoldAmount*/, const FVSAbilityInfo& /*AwardedSkill*/);
+DECLARE_MULTICAST_DELEGATE_FourParams(FOnShowChestMenuSignature, int32 /*GoldAmount*/, const FVSAbilityInfo& /*AwardedSkill*/, bool /*bIsEvolution*/, const FVSAbilityInfo& /*EvolvedSkill*/);
 DECLARE_MULTICAST_DELEGATE(FOnShowPauseMenuSignature);
 
 UCLASS()
@@ -30,15 +30,15 @@ public:
 	FOnShowChestMenuSignature OnShowChestMenuDelegate;
 	FOnShowPauseMenuSignature OnShowPauseMenuDelegate;
 
+	// 全游戏技能图鉴
+	UPROPERTY(EditDefaultsOnly, Category = "VS|Data")
+	TObjectPtr<UVSAbilityInfoData> AbilityInfoData;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
 private:
-	// 全游戏技能图鉴
-	UPROPERTY(EditDefaultsOnly, Category = "VS|Data")
-	TObjectPtr<UDA_AbilityInfo> AbilityInfoData;
-
 	// 输入管线
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputMappingContext> VSContext;
@@ -106,5 +106,5 @@ public:
 	void Client_ShowLevelUpScreen(const TArray<FGameplayTag>& SkillOptions);
 
 	UFUNCTION(Client, Reliable)
-	void Client_ShowChestScreen(int32 GoldAmount, FGameplayTag AwardedTag);
+	void Client_ShowChestScreen(int32 GoldAmount, FGameplayTag AwardedTag, bool bIsEvolution = false, FGameplayTag EvolvedTag = FGameplayTag());
 };

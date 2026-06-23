@@ -4,7 +4,7 @@
 #include "Engine/DataAsset.h"
 #include "Engine/DataTable.h"
 #include "GameplayTagContainer.h"
-#include "DA_AbilityInfo.generated.h"
+#include "VSAbilityInfoData.generated.h"
 
 class UTexture2D;
 class UMaterialInterface;
@@ -89,6 +89,52 @@ struct FVSAbilityRuntimeStats
 };
 
 // ==========================================================
+// 进化武器数值配置表结构 (DT使用)
+// ==========================================================
+USTRUCT(BlueprintType)
+struct FVSEvolvedWeaponStatsRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionRecipe")
+	FGameplayTag RequiredWeaponTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionRecipe")
+	bool bWeaponNeedsMaxLevel = true;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionRecipe")
+	FGameplayTag RequiredPassiveTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionRecipe")
+	bool bPassiveNeedsMaxLevel = true;
+
+	// 进化后的直接数值
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	float BaseDamage = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	float Cooldown = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	float Duration = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	float Area = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	int32 ProjectileCount = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	float ProjectileSpeed = 600.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	float SpeedMultiplier = 1.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	bool bNoCooldown = false;
+};
+
+// ==========================================================
 // 核心数据结构：完全对应单张卡牌的所有信息
 // ==========================================================
 USTRUCT(BlueprintType)
@@ -125,15 +171,19 @@ struct FVSAbilityInfo
 	TObjectPtr<const UMaterialInterface> BackgroundMaterial;
 
 	// ------------------------------------------------------
-	// 满级上限
+	// 进化标志与满级上限
 	// ------------------------------------------------------
 
-	// 满级上限统一设定为 5 级，减轻战斗逻辑开发量
+	// 如果勾选此项，该技能被视为进化后的最终武器，走全局配方配置
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
+	bool bIsEvolvedWeapon = false;
+
+	// 满级上限统一设定为 5 级，减轻战斗逻辑开发量
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules", meta = (EditCondition = "!bIsEvolvedWeapon"))
 	int32 MaxLevel = 5;
 
 	// 技能的具体各级数值表 (每行代表一级)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInfo|Rules", meta = (EditCondition = "!bIsEvolvedWeapon"))
 	TObjectPtr<UDataTable> LevelTable;
 };
 
@@ -142,11 +192,14 @@ struct FVSAbilityInfo
 // 资产大字典类
 // ==========================================================
 UCLASS()
-class VS_API UDA_AbilityInfo : public UDataAsset
+class VS_API UVSAbilityInfoData : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
+	// 统管所有进化武器合成配方与属性的大表
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInformation")
+	TObjectPtr<UDataTable> GlobalEvolvedWeaponStatsTable;
 	// 策划在这里配置全游戏所有的技能
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AbilityInformation")
 	TArray<FVSAbilityInfo> AbilityInformation;
@@ -171,6 +224,10 @@ public:
 		bool bEvolvedNoCooldown = false,
 		bool bEvolvedInfinitePierce = false) const;
 	
+	// 进化核心：预测某个即将获得的技能是否会触发进化反应
+	// 返回值：如果有进化，返回对应的进化版技能 Tag，否则返回一个无效 Tag
+	UFUNCTION(BlueprintCallable, Category = "AbilityInformation|Evolution")
+	FGameplayTag CheckIfCausesEvolution(const FGameplayTag& CandidateTag, int32 CandidatePredictedLevel, const UAbilitySystemComponent* ASC) const;
 	
 private:
 	static float GetAttributeMultiplier(const UAbilitySystemComponent* ASC, const FGameplayAttribute& Attribute, float DefaultValue);

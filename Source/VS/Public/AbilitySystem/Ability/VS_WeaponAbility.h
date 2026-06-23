@@ -20,7 +20,7 @@ struct FVSWeaponFireContext
 };
 
 /**
- * 武器技能基类 (大脑)
+* 武器技能基类 (大脑)
  * 负责大循环倒计时，并生成包含碰撞和特效的实体打手
  */
 UCLASS()
@@ -41,7 +41,7 @@ protected:
 
 	// 设计师在蓝图里配置：全游戏技能大字典 (用于查询本技能各级别对应的基础伤害)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Weapon")
-	TObjectPtr<class UDA_AbilityInfo> GlobalAbilityInfoData;
+	TObjectPtr<class UVSAbilityInfoData> GlobalAbilityInfoData;
 
 	// -------------------------------------------------------------
 	// 循环与结算逻辑

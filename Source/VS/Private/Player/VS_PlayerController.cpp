@@ -1,4 +1,4 @@
-#include "Player/VS_PlayerController.h"
+﻿#include "Player/VS_PlayerController.h"
 #include "Player/VS_PlayerState.h" 
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "VSGameplayTags.h" 
@@ -105,6 +105,18 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 	// 3. 遍历技能字典，进行卡池清洗
 	for (const FVSAbilityInfo& Info : AbilityInfoData->AbilityInformation)
 	{
+		// 如果该技能是进化武器本身，绝不能直接刷出
+		if (Info.bIsEvolvedWeapon)
+		{
+			continue;
+		}
+
+		// 检查防刷出已进化的废弃武器（被吃掉的祭品）
+		if (ASC->EvolvedHistoryWeapons.Contains(Info.AbilityTag))
+		{
+			continue;
+		}
+
 		bool bAlreadyOwned = false;
 		int32 CurrentLevel = 0;
 
@@ -118,7 +130,7 @@ TArray<FGameplayTag> AVS_PlayerController::GenerateValidAbilityPool()
 			}
 		}
 
-		//  如果已经练过，且练到满级了（>= MaxLevel），踢出卡池
+		// 如果已经练过，且练到满级了（>= MaxLevel），踢出卡池
 		if (bAlreadyOwned && CurrentLevel >= Info.MaxLevel)
 		{
 			continue;
@@ -410,7 +422,7 @@ void AVS_PlayerController::Client_ShowLevelUpScreen_Implementation(const TArray<
 	OnShowLevelUpMenuDelegate.Broadcast(RichSkillOptions);
 }
 
-void AVS_PlayerController::Client_ShowChestScreen_Implementation(int32 GoldAmount, FGameplayTag AwardedTag)
+void AVS_PlayerController::Client_ShowChestScreen_Implementation(int32 GoldAmount, FGameplayTag AwardedTag, bool bIsEvolution, FGameplayTag EvolvedTag)
 {
 	FInputModeGameAndUI InputModeData;
 	SetInputMode(InputModeData);
@@ -422,5 +434,6 @@ void AVS_PlayerController::Client_ShowChestScreen_Implementation(int32 GoldAmoun
 		AwardedSkillInfo = AbilityInfoData->FindAbilityInfoForTag(AwardedTag);
 	}
 
-	OnShowChestMenuDelegate.Broadcast(GoldAmount, AwardedSkillInfo);
+	FVSAbilityInfo EvolvedInfo; if (AbilityInfoData && bIsEvolution) { EvolvedInfo = AbilityInfoData->FindAbilityInfoForTag(EvolvedTag); }
+	OnShowChestMenuDelegate.Broadcast(GoldAmount, AwardedSkillInfo, bIsEvolution, EvolvedInfo);
 }
