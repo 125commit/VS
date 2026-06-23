@@ -2,6 +2,7 @@
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "Data/DA_CharacterClassInfo.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/VS_AttributeSet.h"
 
 void UVS_AbilitySystemLibrary::InitializeDefaultAttributesAndAbilities(UObject* WorldContextObject, UVS_AbilitySystemComponent* VSASC, UDA_CharacterClassInfo* CharacterClassInfo, ECharacterClass CharacterClass)
 {
@@ -28,3 +29,21 @@ void UVS_AbilitySystemLibrary::InitializeDefaultAttributesAndAbilities(UObject* 
 		}
 	}
 }
+
+float UVS_AbilitySystemLibrary::HealActor(AActor* TargetActor, float HealAmount)
+{
+	if (!TargetActor || HealAmount <= 0.f) return 0.f;
+	
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (!ASC) return 0.f;
+	
+	const float OldHealth = ASC->GetNumericAttribute(UVS_AttributeSet::GetHealthAttribute());
+	const float MaxHealth = ASC->GetNumericAttribute(UVS_AttributeSet::GetMaxHealthAttribute());
+	const float NewHealth = FMath::Clamp(OldHealth + HealAmount, 0.f, MaxHealth);
+	
+	ASC->SetNumericAttributeBase(UVS_AttributeSet::GetHealthAttribute(), NewHealth);
+	
+	return NewHealth - OldHealth;
+}
+
+

@@ -135,17 +135,5 @@ void AVSBibleActor::SweepInitialOverlaps()
 void AVSBibleActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 过滤无效目标与玩家自身
-	if (!HasAuthority() || !OtherActor || OtherActor == this || OtherActor == GetInstigator()) return;
-
-	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
-	if (!Enemy || Enemy->IsDead() || WeaponDamage <= 0.f) return;
-
-	// NOTE: 每次重叠开始即结算一次伤害——书每转一圈扫过敌人一次=命中一次，转速越快命中越频繁
-	UGameplayStatics::ApplyDamage(
-		Enemy,
-		WeaponDamage,
-		GetInstigatorController(),
-		this,
-		UDamageType::StaticClass());
+	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 }

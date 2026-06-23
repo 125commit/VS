@@ -41,14 +41,19 @@ struct FVSAbilityLevelRow : public FTableRowBase
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	int32 ProjectileCount = 1;
 	
-	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	float ProjectileSpeed = 600.f;
+	
+	// 可额外穿透的敌人数，<0 表示无限穿透
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
+	int32 PierceCount = 0;
 
 	// 速度倍率（1.0 = 100%）：圣经用作转速倍率、FireWand 用作飞行速度倍率
 	// 原因：策划逐级直接填倍率（如 1.3 = +30%），与 Area 的填法对称，免去换算
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LevelRow")
 	float SpeedMultiplier = 1.f;
+
+	
 
 };
 
@@ -82,6 +87,10 @@ struct FVSAbilityRuntimeStats
 	// 速度倍率（1.0 = 100%）：由表值经属性加成计算后下发给武器 Actor
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
 	float SpeedMultiplier = 1.f;
+	
+	// NOTE: 运行时穿透数，来源为表值；进化无限穿透时由 ComputeAbilityStats 置为 -1
+	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
+	int32 PierceCount = 0;
 	
 	// 进化：无 CD 连发
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
@@ -126,6 +135,9 @@ struct FVSEvolvedWeaponStatsRow : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
 	float ProjectileSpeed = 600.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
+	int32 PierceCount = 0;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
 	float SpeedMultiplier = 1.f;

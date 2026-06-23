@@ -107,6 +107,8 @@ FVSWeaponInitParams UVS_WeaponAbility::MakeBaseWeaponParams(const FVSAbilityRunt
 	// 速度倍率兜底为 1.0，避免表未配时把速度归零
 	Params.SpeedMultiplier = Stats.SpeedMultiplier > 0.f ? Stats.SpeedMultiplier : 1.f;
 
-	
+	// NOTE: 穿透数原样下发（含 -1 无限穿透语义），由投射物 Actor 自行判断回收时机
+	Params.PierceCount = Stats.PierceCount;
+
 	return Params;
 }

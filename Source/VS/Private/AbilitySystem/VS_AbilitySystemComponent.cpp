@@ -1,5 +1,6 @@
 #include "AbilitySystem/VS_AbilitySystemComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/VS_AttributeSet.h"
 #include "AbilitySystem/Ability/VS_GameplayAbility.h"
 #include "Player/VS_PlayerController.h"
 #include "Data/VSAbilityInfoData.h"
@@ -99,6 +100,7 @@ void UVS_AbilitySystemComponent::ServerUpgradeAbility_Implementation(TSubclassOf
 				TArray<FVSEvolvedWeaponStatsRow*> AllEvolutionRows;
 				VSPC->AbilityInfoData->GlobalEvolvedWeaponStatsTable->GetAllRows<FVSEvolvedWeaponStatsRow>(TEXT("ExecuteEvolution"), AllEvolutionRows);
 				
+				//TODO:可优化
 				for (const FVSEvolvedWeaponStatsRow* Row : AllEvolutionRows)
 				{
 					if (!Row) continue;

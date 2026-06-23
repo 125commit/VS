@@ -39,7 +39,7 @@ void UVSEnemyManager::Deinitialize()
 	Super::Deinitialize();
 }
 
-//追踪 EnemyManager 使用 Tick 的性能消�?
+//追踪 EnemyManager 使用 Tick 的性能消耗
 TStatId UVSEnemyManager::GetStatId() const
 {
 	RETURN_QUICK_DECLARE_CYCLE_STAT(UVSEnemyManager, STATGROUP_Tickables);
@@ -110,10 +110,13 @@ int32 UVSEnemyManager::GetActiveEliteEnemiesCount() const
 	return Count;
 }
 
-void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
+void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy, AActor* Causer)
 {
 	if (!Enemy || !ActiveEnemies.Contains(Enemy)) return;
 
+	// STEP: 先广播击杀（此时敌人尚在场，监听者可读取其位置等信息）
+	OnEnemyKilledDelegate.Broadcast(Enemy, Causer);
+	
 	UVS_DropSubsystem* DropManager = GetWorld()->GetSubsystem<UVS_DropSubsystem>();
 	if (!DropManager) return;
 
@@ -121,7 +124,9 @@ void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy)
 	{
 		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
 	}
-	ReturnEnemiesToPool(Enemy);
+
+	
+
 }
 
 void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)

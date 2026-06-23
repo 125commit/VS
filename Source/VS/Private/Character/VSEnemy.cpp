@@ -74,6 +74,14 @@ float AVSEnemy::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AContr
 	
 	Health = FMath::Max(0.f, Health - DamageToApply);
 	
+	UVSEnemyManager* EnemyManager = GetWorld()->GetSubsystem<UVSEnemyManager>();
+	
+	// STEP: 广播"被命中"（吸血鞭据此回血）
+	if (EnemyManager)
+	{
+		EnemyManager->OnEnemyDamagedDelegate.Broadcast(this, DamageToApply, DamageCauser);
+	}
+	
 	if (Health <= 0.f)
 	{
 		if (bIsDead)
@@ -85,12 +93,10 @@ float AVSEnemy::TakeDamage(float Damage, const FDamageEvent& DamageEvent, AContr
 		// 防止继续被 Overlap / 移动逻辑命中
 		SetActorEnableCollision(false);
 		SetVisualSpeed(0.f);
-		if (UWorld* World = GetWorld())
+		
+		if (EnemyManager)
 		{
-			if (UVSEnemyManager* EnemyManager = World->GetSubsystem<UVSEnemyManager>())
-			{
-				EnemyManager->OnEnemyDie(this);
-			}
+			EnemyManager->OnEnemyDie(this, DamageCauser);
 		}
 	}
 	return DamageToApply;
