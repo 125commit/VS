@@ -62,7 +62,7 @@ protected:
 	virtual void ExecuteFire(const FVSAbilityRuntimeStats& Stats);
 	
 	/** BaseDamage(表) × Might(AttributeSet) */
-	float ComputeFinalDamage(float BaseDamage) const;
+	virtual float ComputeFinalDamage(float BaseDamage) const;
 	
 	// 获取角色属性的辅助函数
 	float GetAttributeValue(const FGameplayAttribute& Attribute) const;

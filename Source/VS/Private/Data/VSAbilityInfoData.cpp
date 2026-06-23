@@ -90,10 +90,11 @@ FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTa
 				Stats.ProjectileCount = FMath::Max(1, EvolvedRow->ProjectileCount);
 				Stats.ProjectileSpeed = FMath::Max(0.f, EvolvedRow->ProjectileSpeed);
 				Stats.SpeedMultiplier = FMath::Max(0.f, EvolvedRow->SpeedMultiplier);
+				Stats.PierceCount = EvolvedRow->PierceCount;
 
 				if (Stats.bNoCooldown)
 				{
-					Stats.Cooldown = 0.f;
+					Stats.Cooldown = 0.15f;
 				}
 				// 进化武器通常不受普通 CD 缩减影响，或者根据策划需求自行乘 Mult
 				return Stats;
@@ -122,7 +123,7 @@ FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTa
 	
 	if (Stats.bNoCooldown)
 	{
-		Stats.Cooldown = 0.f;
+		Stats.Cooldown = 0.15f;
 	}
 	return Stats;
 }

@@ -9,12 +9,20 @@
 class AVSEnemy;
 class UVSObjectPool;
 
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnEnemyDamagedSignature, AVSEnemy* /*Victim*/, float /*Damage*/, AActor* /*Causer*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams (FOnEnemyKilledSignature,  AVSEnemy* /*Victim*/, AActor* /*Causer*/);
+
 UCLASS()
 class VS_API UVSEnemyManager : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 
 public:
+	
+	FOnEnemyDamagedSignature OnEnemyDamagedDelegate;   // TakeDamage 扣血后广播
+	FOnEnemyKilledSignature  OnEnemyKilledDelegate;    // OnEnemyDie 里广播
+	
+	
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -32,7 +40,7 @@ public:
 	UPROPERTY()
 	TArray<AActor*> ActiveEnemies;
 	
-	void OnEnemyDie(AVSEnemy* Enemy);
+	void OnEnemyDie(AVSEnemy* Enemy, AActor* Causer);
 
 private:
 	void ProcessEnemyLogic(float DeltaTime);

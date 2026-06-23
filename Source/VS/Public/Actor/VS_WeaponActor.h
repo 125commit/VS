@@ -38,6 +38,10 @@ struct FVSWeaponInitParams
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	float SpeedMultiplier = 1.f;
 	
+	// NOTE: 可额外穿透的敌人数；<0 表示无限穿透。Straight/Homing 投射物均使用
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	int32 PierceCount = 0;
+	
 	/** Projectile的飞行模式：由 GA 在 spawn 前设置 */
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	EVSProjectileMovementMode MovementMode = EVSProjectileMovementMode::Straight;

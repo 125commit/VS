@@ -48,6 +48,33 @@ void FVSGameplayTags::InitializeNativeGameplayTags()
 		FString("武器：强能魔杖")
 	);
 
+	// -- 进化武器 -- //
+	GameplayTags.Abilities_Weapon_EvolvedWhip = Manager.AddNativeGameplayTag(
+		FName("Abilities.Weapon.EvolvedWhip"),
+		FString("进化武器：吸血鞭")
+		);
+	
+	GameplayTags.Abilities_Weapon_EvolvedBook = Manager.AddNativeGameplayTag(
+		FName("Abilities.Weapon.EvolvedBook"),
+		FString("进化武器：渎神祷书")
+		);
+		
+	GameplayTags.Abilities_Weapon_EvolvedGarlic = Manager.AddNativeGameplayTag(
+		FName("Abilities.Weapon.EvolvedGarlic"),
+		FString("进化武器：噬魂纹章")
+		);
+	
+	GameplayTags.Abilities_Weapon_EvolvedMagicWand = Manager.AddNativeGameplayTag(
+		FName("Abilities.Weapon.EvolvedMagicWand"),
+		FString("进化武器：圣魔杖")
+		);	
+		
+	GameplayTags.Abilities_Weapon_EvolvedFireWand = Manager.AddNativeGameplayTag(
+		FName("Abilities.Weapon.EvolvedFireWand"),
+		FString("进化武器：地狱火")
+		);
+	
+	
 	// -------------------------------------------------------------
 	// 注册：被动 Tags
 	// -------------------------------------------------------------
@@ -76,8 +103,14 @@ void FVSGameplayTags::InitializeNativeGameplayTags()
 		FString("被动：菠菜 (伤害加成)")
 	);
 	
+	
+	
 	GameplayTags.Data_Passive_Magnitude = Manager.AddNativeGameplayTag(
 		FName("Data.Passive.Magnitude"), 
 		FString("被动 SetByCaller 数值通道"));
+	
+	GameplayTags.Ability_Upgrade = Manager.AddNativeGameplayTag(
+		FName("Ability.Upgrade"), 
+		FString("升级标签"));
 	
 }

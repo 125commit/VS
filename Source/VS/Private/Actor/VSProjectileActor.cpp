@@ -22,8 +22,7 @@ AVSProjectileActor::AVSProjectileActor()
 
 void AVSProjectileActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 {
-	// CHANGED: 原先 ProjectileSpeed = 表基础速度 → 改为乘上该级速度倍率
-	// 原因：支持 FireWand 按等级提升飞行速度（倍率默认 1.0，不影响其它武器）
+	
 	ProjectileSpeed = InitParams.ProjectileSpeed * FMath::Max(0.f, InitParams.SpeedMultiplier);
 	TargetEnemy = InitParams.TargetEnemy;
 	bStopOnHit = false;
@@ -31,6 +30,9 @@ void AVSProjectileActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 	
 	MovementMode = InitParams.MovementMode;
 	FlightDirection = InitParams.FlightDirection.GetSafeNormal(); //给FireWand用的飞行方向
+	
+	// NOTE: 每次出池都重置穿透上限，避免复用到上一发的残留值
+	PierceCount = InitParams.PierceCount;
 	
 	Super::InitFromParams(InitParams);
 }
@@ -105,6 +107,7 @@ void AVSProjectileActor::DeactivateWeapon()
 	TargetEnemy = nullptr;
 	bStopOnHit = false;
 	HitEnemies.Empty();
+	PierceCount = 0;
 	
 	Super::DeactivateWeapon();
 }
@@ -126,7 +129,7 @@ void AVSProjectileActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	if (!HasAuthority()) return;
-	if (MovementMode == EVSProjectileMovementMode::Homing && bStopOnHit) return;
+	if (bStopOnHit) return;
 	
 	
 	// ── FireWand：只沿固定方向飞，不索敌 ── //
@@ -166,12 +169,7 @@ void AVSProjectileActor::Tick(float DeltaTime)
 
 	if (DistanceSq <= FMath::Square(HitRadius + 50.f)) // 50.f 可按敌人胶囊体半径调整
 	{
-		if (!bStopOnHit)
-		{
-			bStopOnHit = true;
-			Super::OnOverlapBegin(SphereCollision, TargetEnemy.Get(), nullptr, INDEX_NONE, false, FHitResult());
-			ReturnToPool();
-		}
+		OnOverlapBegin(SphereCollision, TargetEnemy.Get(), nullptr, INDEX_NONE, false, FHitResult());
 		return;
 	}
 	
@@ -205,8 +203,8 @@ void AVSProjectileActor::SweepInitialOverlaps()
 
 void AVSProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//只有MagicWand才是一碰撞就回池
-	if (MovementMode == EVSProjectileMovementMode::Homing && bStopOnHit) return;
+	// WARN: bStopOnHit 现在表示"穿透次数已耗尽、正在/已回池"，两种模式都用它做二次进入的防护
+	if (bStopOnHit) return;
 	if (!HasAuthority()) return;
 
 	if (!OtherActor || OtherActor == this || OtherActor == GetInstigator() || OtherActor == GetOwner()) return;
@@ -214,29 +212,67 @@ void AVSProjectileActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent
 	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
 	if (!Enemy || Enemy->IsDead()) return;
 	
+	// STEP: 同一颗投射物对同一敌人只结算一次伤害（穿透时尤为关键）
+	if (HitEnemies.Contains(Enemy)) return;
+	HitEnemies.Add(Enemy);
 	
-	// ── FireWand：穿透，同敌只伤一次，不回池 ──
+	// STEP: 结算伤害（基类负责 ApplyDamage）
+	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
-	if (MovementMode == EVSProjectileMovementMode::Straight)
+	// STEP: 判断穿透是否耗尽。PierceCount<0 视为无限穿透；否则命中数 > PierceCount 即回池
+	// 默认 PierceCount=0：命中首个敌人后 HitEnemies.Num()==1 > 0 → 立即回池（FireWand 一打就消失）
+	const bool bExhausted = (PierceCount >= 0 && HitEnemies.Num() > PierceCount);
+	if (bExhausted)
 	{
-		// 已伤害过该敌人，跳过
-		for (const TWeakObjectPtr<AVSEnemy>& HitEnemy : HitEnemies)
-		{
-			if (HitEnemy.Get() == Enemy)
-			{
-				return;
-			}
-		}
-		HitEnemies.Add(Enemy);
-		Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+		bStopOnHit = true;
+		ReturnToPool();
 		return;
 	}
 	
-	Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
-	bStopOnHit = true;
-	ReturnToPool();
+	// STEP: 仍可继续穿透。Straight 直接保持直线飞行；Homing 必须重新索敌才能继续追击
+	if (MovementMode == EVSProjectileMovementMode::Homing)
+	{
+		if (AVSEnemy* NextTarget = FindNextHomingTarget())
+		{
+			TargetEnemy = NextTarget;
+		}
+		else
+		{
+			// NOTE: 没有可追踪的新目标，提前回池（剩余穿透次数因场上无敌人而作废）
+			bStopOnHit = true;
+			ReturnToPool();
+		}
+	}
+}
+
+AVSEnemy* AVSProjectileActor::FindNextHomingTarget() const
+{
+	UWorld* World = GetWorld();
+	if (!World) return nullptr;
 	
+	UVSEnemyManager* EnemyManager = World->GetSubsystem<UVSEnemyManager>();
+	if (!EnemyManager) return nullptr;
 	
+	const FVector MyLoc = GetActorLocation();
+	AVSEnemy* Best = nullptr;
+	float BestDistSq = TNumericLimits<float>::Max();
+	
+	// STEP: 在存活且未被本颗命中过的敌人中选最近者
+	for (AActor* Actor : EnemyManager->ActiveEnemies)
+	{
+		AVSEnemy* Enemy = Cast<AVSEnemy>(Actor);
+		if (!Enemy || Enemy->IsDead()) continue;
+		if (HitEnemies.Contains(Enemy)) continue;
+		
+		const float DistSq = FVector::DistSquared(MyLoc, Enemy->GetActorLocation());
+		if (DistSq < BestDistSq)
+		{
+			BestDistSq = DistSq;
+			Best = Enemy;
+		}
+	}
+	
+	return Best;
 }
 
 void AVSProjectileActor::ReturnToPool()
