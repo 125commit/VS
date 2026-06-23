@@ -7,7 +7,7 @@
 #include "VSGameplayTags.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "AbilitySystem/VS_AttributeSet.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "Subsystem/VSWeaponSubsysem.h"
 
 

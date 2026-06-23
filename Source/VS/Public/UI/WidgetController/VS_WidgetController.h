@@ -1,13 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "AbilitySystemComponent.h"
 #include "UObject/NoExportTypes.h"
 #include "VS_WidgetController.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChangedSignature, int32, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FVSAbilityInfo&, Info);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWeaponEvolvedDelegateSignature, const FGameplayTag&, OldTag, const FGameplayTag&, NewTag);
 
 class UAttributeSet;
 class UAbilitySystemComponent;
@@ -15,7 +16,7 @@ class AVS_PlayerController;
 class AVS_PlayerState;
 class UVS_AbilitySystemComponent;
 class UVS_AttributeSet;
-class UDA_AbilityInfo;
+class UVSAbilityInfoData;
 
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
@@ -57,11 +58,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
 	FAbilityInfoSignature AbilityInfoDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+	FWeaponEvolvedDelegateSignature WeaponEvolvedDelegate;
+
+	UFUNCTION()
+	void WeaponEvolvedDelegate_Broadcast(const FGameplayTag& OldTag, const FGameplayTag& NewTag);
+
 	void BroadcastAbilityInfo();
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
-	TObjectPtr<UDA_AbilityInfo> AbilityInfo;
+	TObjectPtr<UVSAbilityInfoData> AbilityInfo;
 
 	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
 	TObjectPtr<APlayerController> PlayerController;

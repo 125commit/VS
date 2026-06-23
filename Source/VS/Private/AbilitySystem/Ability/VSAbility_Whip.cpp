@@ -4,7 +4,7 @@
 #include "AbilitySystem/Ability/VSAbility_Whip.h"
 #include "VSGameplayTags.h"
 #include "Actor/VSWhipActor.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "Subsystem/VSWeaponSubsysem.h"
 
 UVSAbility_Whip::UVSAbility_Whip()

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "GameplayTagContainer.h"
 #include "VS_SaveGame.generated.h"
 
 /**

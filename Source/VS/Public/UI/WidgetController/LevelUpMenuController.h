@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "UI/WidgetController/VS_WidgetController.h"
 #include "LevelUpMenuController.generated.h"
 
@@ -29,6 +29,12 @@ struct FVSLevelUpCardInfo
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bIsNewAbility = true;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bWillCauseEvolution = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	FVSAbilityInfo EvolvedAbilityInfo;
 };
 
 // Broadcasts the latest level-up card list to WBP_LevelUpScreen.

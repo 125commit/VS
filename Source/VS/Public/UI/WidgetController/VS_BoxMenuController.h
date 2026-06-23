@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "UI/WidgetController/VS_WidgetController.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "VS_BoxMenuController.generated.h"
 
 /**
@@ -15,9 +15,15 @@ class VS_API UVS_BoxMenuController : public UVS_WidgetController
 
 public:
 	// 由 HUD调用的数据注入接口
-	void SetChestData(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill);
+	void SetChestData(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill, bool bIsEvolution = false, const FVSAbilityInfo& EvolvedSkill = FVSAbilityInfo());
 
 protected:
 	int32 SavedGoldAmount;
 	FVSAbilityInfo SavedAwardedSkill;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bSavedIsEvolution;
+
+	UPROPERTY(BlueprintReadOnly)
+	FVSAbilityInfo SavedEvolvedSkill;
 };

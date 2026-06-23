@@ -1,25 +1,24 @@
 // LAvid
 
-#include "Subsystem/VSDropManager.h"
+#include "Subsystem/VS_DropSubsystem.h"
 #include "Pool/VSObjectPool.h"
-#include "Actor/VSDropItem.h"
+#include "Actor/VS_DropItemActor.h"
+#include "Data/Subsystem/VSDropData.h"
 #include "Player/VS_PlayerState.h"
 #include "Player/VS_PlayerController.h"
 #include "AbilitySystem/VS_AttributeSet.h"
 #include "Kismet/GameplayStatics.h"
-#include "Data/Subsystem/DA_DropItems.h"
-#include "Data/Subsystem/VSDropEntry.h"
 #include "Engine/DataTable.h"
 
 
-void UVSDropManager::Initialize(FSubsystemCollectionBase& Collection)
+void UVS_DropSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	DropPool = NewObject<UVSObjectPool>(this);
 
 	//初始化设置DropSetting
-	DropSettings = Cast<UDA_DropItems>(StaticLoadObject(
-		UDA_DropItems::StaticClass(),
+	DropSettings = Cast<UVS_DropItemDataAsset>(StaticLoadObject(
+		UVS_DropItemDataAsset::StaticClass(),
 		nullptr,
 		TEXT("/Game/Data/DA/DA_DropItems.DA_DropItems")
 	));
@@ -41,10 +40,10 @@ void UVSDropManager::Initialize(FSubsystemCollectionBase& Collection)
 	PreWarmPools();
 }
 
-void UVSDropManager::Deinitialize()
+void UVS_DropSubsystem::Deinitialize()
 {
-	TArray<TObjectPtr<AVSDropItem>> DropsToReturn = MoveTemp(ActiveDrops);
-	for (AVSDropItem* Drop : DropsToReturn)
+	TArray<TObjectPtr<AVS_DropItemActor>> DropsToReturn = MoveTemp(ActiveDrops);
+	for (AVS_DropItemActor* Drop : DropsToReturn)
 	{
 		if (!DropPool || !Drop) continue;
 		Drop->DeActivateDrop();
@@ -60,7 +59,7 @@ void UVSDropManager::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UVSDropManager::Tick(float DeltaTime)
+void UVS_DropSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	if (ActiveDrops.Num() == 0) return;
@@ -68,25 +67,25 @@ void UVSDropManager::Tick(float DeltaTime)
 	TryPickUp(DeltaTime);
 }
 
-TStatId UVSDropManager::GetStatId() const
+TStatId UVS_DropSubsystem::GetStatId() const
 {
-	RETURN_QUICK_DECLARE_CYCLE_STAT(UVSDropManager, STATGROUP_Tickables);
+	RETURN_QUICK_DECLARE_CYCLE_STAT(UVS_DropSubsystem, STATGROUP_Tickables);
 }
 
-void UVSDropManager::SpawnDrop(const FVector& Location, const UDataTable* DropTable)
+void UVS_DropSubsystem::SpawnDrop(const FVector& Location, const UDataTable* DropTable)
 {
 	UWorld* World = GetWorld();
 	if (!World || !DropPool || !DropSettings || !DropTable) return;
 
-	TArray<FDropEntry*> AllRows;
-	DropTable->GetAllRows<FDropEntry>(TEXT("SpawnDrop"), AllRows);
+	TArray<FVSDropEntry*> AllRows;
+	DropTable->GetAllRows<FVSDropEntry>(TEXT("SpawnDrop"), AllRows);
 
 	if (AllRows.Num() == 0) return;
 
-	FDropEntry SelectedEntry;
+	FVSDropEntry SelectedEntry;
 	bool bFound = false;
 
-	for (const FDropEntry* EntryRow : AllRows)
+	for (const FVSDropEntry* EntryRow : AllRows)
 	{
 		if (EntryRow->DropType == EVSDropType::None) continue;
 
@@ -101,20 +100,20 @@ void UVSDropManager::SpawnDrop(const FVector& Location, const UDataTable* DropTa
 	if (!bFound) return;
 
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
-	const FDropTypeDefinition DropTypeDefinition = DropSettings->FindDefinition(SelectedEntry.DropType);
-	const TSubclassOf<AVSDropItem> DropClass = DropTypeDefinition.DropActorClass;
+	const FVSDropTypeDefinition DropTypeDefinition = DropSettings->FindDefinition(SelectedEntry.DropType);
+	const TSubclassOf<AVS_DropItemActor> DropClass = DropTypeDefinition.DropActorClass;
 	if (DropClass == nullptr) return;
 
 	//Spawn
 	AActor* Actor = DropPool->GetActorFromPool(World, DropClass, Location, FRotator::ZeroRotator);
-	AVSDropItem* DropItem = Cast<AVSDropItem>(Actor);
+	AVS_DropItemActor* DropItem = Cast<AVS_DropItemActor>(Actor);
 	check(DropItem);
 
 	DropItem->ActivateDrop(SelectedEntry.DropType, SelectedEntry.DropValue);
 	ActiveDrops.Add(DropItem);
 }
 
-void UVSDropManager::TryPickUp(float DeltaTime)
+void UVS_DropSubsystem::TryPickUp(float DeltaTime)
 {
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (!PlayerPawn) return;
@@ -130,7 +129,7 @@ void UVSDropManager::TryPickUp(float DeltaTime)
 
 	for (int32 i = ActiveDrops.Num() - 1; i >= 0; --i)
 	{
-		AVSDropItem* Drop = ActiveDrops[i];
+		AVS_DropItemActor* Drop = ActiveDrops[i];
 		if (!IsValid(Drop) || !Drop->IsActive())
 		{
 			ActiveDrops.RemoveAtSwap(i);
@@ -158,7 +157,7 @@ void UVSDropManager::TryPickUp(float DeltaTime)
 	}
 }
 
-void UVSDropManager::HandleCollectingDrop(AVSDropItem* DropItem, AVS_PlayerState* PlayerState)
+void UVS_DropSubsystem::HandleCollectingDrop(AVS_DropItemActor* DropItem, AVS_PlayerState* PlayerState)
 {
 	if (!DropItem || !DropPool || !PlayerState) return;
 	switch (DropItem->GetDropType())
@@ -191,7 +190,7 @@ void UVSDropManager::HandleCollectingDrop(AVSDropItem* DropItem, AVS_PlayerState
 	DropPool->ReturnActorToPool(DropItem);
 }
 
-float UVSDropManager::GetPlayerMagnetRadiusSq(const APawn* PlayerPawn)
+float UVS_DropSubsystem::GetPlayerMagnetRadiusSq(const APawn* PlayerPawn)
 {
 	if (!PlayerPawn) return MagnetRadiusSq;
 
@@ -206,28 +205,28 @@ float UVSDropManager::GetPlayerMagnetRadiusSq(const APawn* PlayerPawn)
 	return MagnetRadiusSq;
 }
 
-float UVSDropManager::GetPlayerPickupRadiusSq()
+float UVS_DropSubsystem::GetPlayerPickupRadiusSq()
 {
 	return PickupRadius * PickupRadius;
 }
 
-void UVSDropManager::PreWarmPools()
+void UVS_DropSubsystem::PreWarmPools()
 {
 	if (!DropPool || !DropSettings) return;
 
 	UWorld* World = GetWorld();
 	if (!World) return;
 
-	for (const TPair<EVSDropType, FDropTypeDefinition>& Pair : DropSettings->DropTypeToTypeDef)
+	for (const TPair<EVSDropType, FVSDropTypeDefinition>& Pair : DropSettings->DropTypeToTypeDef)
 	{
-		const FDropTypeDefinition& Def = Pair.Value;
+		const FVSDropTypeDefinition& Def = Pair.Value;
 		if (!Def.DropActorClass || Def.PreSpawnCount <= 0) continue;
 
 		for (int32 i = 0; i < Def.PreSpawnCount; ++i)
 		{
 			AActor* Actor = DropPool->GetActorFromPool(World, Def.DropActorClass, FVector::ZeroVector, FRotator::ZeroRotator);
 
-			if (AVSDropItem* DropItem = Cast<AVSDropItem>(Actor))
+			if (AVS_DropItemActor* DropItem = Cast<AVS_DropItemActor>(Actor))
 			{
 				DropItem->DeActivateDrop();
 				DropPool->ReturnActorToPool(DropItem);

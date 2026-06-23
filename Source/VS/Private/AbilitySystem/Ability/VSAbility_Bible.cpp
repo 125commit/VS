@@ -6,7 +6,7 @@
 #include "VSGameplayTags.h"
 #include "Actor/VS_WeaponActor.h"
 #include "Subsystem/VSWeaponSubsysem.h"
-#include "Data/DA_AbilityInfo.h" // 需要 FVSAbilityRuntimeStats 完整定义以访问其成员
+#include "Data/VSAbilityInfoData.h" // 需要FVSAbilityRuntimeStats 完整定义以访问其成员
 
 UVSAbility_Bible::UVSAbility_Bible()
 {

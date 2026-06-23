@@ -4,7 +4,7 @@
 #include "AbilitySystem/Ability/VS_GameplayAbility.h"
 #include "VS_PassiveAbility.generated.h"
 
-class UDA_AbilityInfo;
+class UVSAbilityInfoData;
 struct FScalableFloat;
 /**
  * 被动技能基类
@@ -28,7 +28,7 @@ protected:
 
 	// 在蓝图里配置：全游戏技能字典 (用于查询本被动技能各级别对应的加成数值)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Passive")
-	TObjectPtr<UDA_AbilityInfo> GlobalAbilityInfoData;
+	TObjectPtr<UVSAbilityInfoData> GlobalAbilityInfoData;
 
 	// 在蓝图里配置：增加属性的永久 GameplayEffect
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Passive")

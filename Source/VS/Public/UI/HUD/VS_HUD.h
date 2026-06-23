@@ -1,8 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "VS_HUD.generated.h"
 
 class UAttributeSet;
@@ -34,7 +34,7 @@ private:
 	// C++ 绑定的底层中继回调
 	void BindPlayerControllerDelegates(APlayerController* PC);
 	void OnShowLevelUpMenu(const TArray<FVSAbilityInfo>& SkillOptions);
-	void OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill);
+	void OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSkill, bool bIsEvolution = false, const FVSAbilityInfo& EvolvedSkillInfo = FVSAbilityInfo());
 	void OnShowPauseMenu();
 
 	UPROPERTY()

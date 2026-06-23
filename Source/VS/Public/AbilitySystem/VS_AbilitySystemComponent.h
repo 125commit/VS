@@ -8,6 +8,7 @@
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/);
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FWeaponEvolvedSignature, const FGameplayTag&, OldTag, const FGameplayTag&, NewTag);
 
 USTRUCT(BlueprintType)
 struct FVSOwnedAbilityInfo
@@ -41,11 +42,25 @@ public:
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void ServerUpgradeAbility(TSubclassOf<UGameplayAbility> WeaponAbilityClass);
 
+	// 记录进化时被消耗的武器Tag，用于从随机池里踢掉
+	UPROPERTY(BlueprintReadOnly, Category = "Evolution")
+	TArray<FGameplayTag> EvolvedHistoryWeapons;
+
+	UFUNCTION(BlueprintCallable, Category = "Evolution")
+	void AddHistoryWeapon(const FGameplayTag& WeaponTag);
+
+	// 专门通知客户端：你的武器进化了，立刻把UI盖上去！
+	UFUNCTION(Client, Reliable)
+	void Client_NotifyWeaponEvolved(const FGameplayTag& OldTag, const FGameplayTag& NewTag);
+
 	// -----------------------------------------------------------------
 	// 委托与防火墙标志位
 	// -----------------------------------------------------------------
 	FEffectAssetTags EffectAssetTags;
 	FAbilitiesGiven AbilitiesGivenDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category = "Evolution")
+	FWeaponEvolvedSignature OnWeaponEvolved;
 
 	bool bStartupAbilitiesGiven = false;
 

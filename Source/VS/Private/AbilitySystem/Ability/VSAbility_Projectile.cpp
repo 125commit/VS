@@ -7,7 +7,7 @@
 #include "Actor/VS_WeaponActor.h"
 #include "Subsystem/VSEnemyManager.h"
 #include "Subsystem/VSWeaponSubsysem.h"
-#include "Data/DA_AbilityInfo.h"
+#include "Data/VSAbilityInfoData.h"
 #include "Character/VSEnemy.h"
 
 UVSAbility_Projectile::UVSAbility_Projectile()

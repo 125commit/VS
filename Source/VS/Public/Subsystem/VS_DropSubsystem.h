@@ -3,18 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actor/VSDropItem.h"
-#include "Data/Subsystem/DA_DropItems.h"
-#include "Subsystems/worldSubsystem.h"
-#include "VSDropManager.generated.h"
+#include "Actor/VS_DropItemActor.h"
+#include "Data/Subsystem/VSDropData.h"
+#include "Subsystems/WorldSubsystem.h"
+#include "VS_DropSubsystem.generated.h"
 
 class AVS_PlayerState;
 class UDataTable;
 class UVSObjectPool;
-struct FDropTypeDefinition;
 
 UCLASS()
-class VS_API UVSDropManager : public UTickableWorldSubsystem
+class VS_API UVS_DropSubsystem : public UTickableWorldSubsystem
 {
 	GENERATED_BODY()
 
@@ -30,20 +29,20 @@ public:
 
 protected:
 	UPROPERTY()
-	TObjectPtr<UDA_DropItems> DropSettings;
+	TObjectPtr<UVS_DropItemDataAsset> DropSettings;
 
 	UPROPERTY()
 	TObjectPtr<UVSObjectPool> DropPool = nullptr;
 
 	UPROPERTY()
-	TArray<TObjectPtr<AVSDropItem>> ActiveDrops;
+	TArray<TObjectPtr<AVS_DropItemActor>> ActiveDrops;
 
 private:
 	void PreWarmPools();
 
 	float GetPlayerMagnetRadiusSq(const APawn* PlayerPawn);
 	float GetPlayerPickupRadiusSq();
-	void HandleCollectingDrop(AVSDropItem* DropItem, AVS_PlayerState* PlayerState);
+	void HandleCollectingDrop(AVS_DropItemActor* DropItem, AVS_PlayerState* PlayerState);
 
 	float MagnetRadius = 100.f;
 	float MagnetRadiusSq = 10000.f;
