@@ -14,4 +14,6 @@ class VS_API UVSAbility_EvolvedMagicWand : public UVSAbility_Projectile
 {
 	GENERATED_BODY()
 	
+	public:
+	UVSAbility_EvolvedMagicWand();
 };
