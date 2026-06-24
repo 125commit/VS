@@ -179,7 +179,8 @@ void AVS_HUD::OnShowChestMenu(int32 GoldAmount, const FVSAbilityInfo& AwardedSki
 	const FWidgetControllerParams WCParams(PC, PS, nullptr, nullptr);
 
 	UVS_BoxMenuController* WidgetController = GetBoxMenuController(WCParams);
-	WidgetController->SetChestData(GoldAmount, AwardedSkill);
+	// Preserve the evolution payload so WBP_BoxScreen can show the evolved reward instead of the sacrificed weapon.
+	WidgetController->SetChestData(GoldAmount, AwardedSkill, bIsEvolution, EvolvedSkillInfo);
 
 	BoxWidget->SetWidgetController(WidgetController);
 	WidgetController->BroadcastInitialValues();
