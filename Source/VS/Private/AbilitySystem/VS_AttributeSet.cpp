@@ -104,7 +104,12 @@ void UVS_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 			// 扣除真实生命值
 			const float NewHealth = GetHealth() - LocalDamageDone;
 			SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
-			// 此处后续可发送受击标签、判定死亡等
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Health:[%f]"), NewHealth));
+			bool bIsFatal = NewHealth == 0.f;
+			if (bIsFatal)
+			{
+				// 此处后续可发送受击标签、判定死亡等
+			}
 		}
 	}
 	

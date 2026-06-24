@@ -60,16 +60,16 @@ float UVSAbilityInfoData::GetAttributeMultiplier(const UAbilitySystemComponent* 
 
 float UVSAbilityInfoData::SanitizeCooldown(float Cooldown)
 {
-	return Cooldown <= 0.05f ? 1.f : Cooldown;
+	return FMath::Max(0.05f, Cooldown);
 }
 
 float UVSAbilityInfoData::SanitizeArea(float Area)
 {
-	return Area <= 0.01f ? 1.f : Area;
+	return FMath::Max(0.01, Area);
 }
 
 FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTag& AbilityTag, int32 AbilityLevel,
-                                                            const UAbilitySystemComponent* ASC, bool bEvolvedNoCooldown, bool bEvolvedInfinitePierce) const
+                                                            const UAbilitySystemComponent* ASC) const
 {
 	FVSAbilityRuntimeStats Stats; 
 	FVSAbilityInfo Info = FindAbilityInfoForTag(AbilityTag, true);
@@ -83,7 +83,6 @@ FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTa
 			if (EvolvedRow)
 			{
 				Stats.BaseDamage = EvolvedRow->BaseDamage;
-				Stats.bNoCooldown = EvolvedRow->bNoCooldown;
 				Stats.Cooldown = SanitizeCooldown(EvolvedRow->Cooldown);
 				Stats.Duration = FMath::Max(0.f, EvolvedRow->Duration);
 				Stats.Area = SanitizeArea(EvolvedRow->Area);
@@ -92,10 +91,6 @@ FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTa
 				Stats.SpeedMultiplier = FMath::Max(0.f, EvolvedRow->SpeedMultiplier);
 				Stats.PierceCount = EvolvedRow->PierceCount;
 
-				if (Stats.bNoCooldown)
-				{
-					Stats.Cooldown = 0.15f;
-				}
 				// 进化武器通常不受普通 CD 缩减影响，或者根据策划需求自行乘 Mult
 				return Stats;
 			}
@@ -108,7 +103,6 @@ FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTa
 	const FVSAbilityLevelRow Row = GetLevelRow(AbilityTag, AbilityLevel, true);
 	
 	Stats.BaseDamage = Row.BaseDamage;
-	Stats.bNoCooldown = bEvolvedNoCooldown;
 	
 	const float CooldownMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetCooldownMultAttribute(), 1.f);
 	const float DurationMult = GetAttributeMultiplier(ASC, UVS_AttributeSet::GetDurationMultAttribute(), 1.f);
@@ -120,11 +114,8 @@ FVSAbilityRuntimeStats UVSAbilityInfoData::ComputeAbilityStats(const FGameplayTa
 	Stats.ProjectileCount = FMath::Max(1, Row.ProjectileCount);
 	Stats.ProjectileSpeed = FMath::Max(0.f, Row.ProjectileSpeed);
 	Stats.SpeedMultiplier = FMath::Max(0.f, Row.SpeedMultiplier);
-	
-	if (Stats.bNoCooldown)
-	{
-		Stats.Cooldown = 0.15f;
-	}
+	Stats.PierceCount	  = FMath::Max(0.f, Row.PierceCount);
+
 	return Stats;
 }
 

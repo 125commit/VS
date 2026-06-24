@@ -125,7 +125,7 @@ void UVSEnemyManager::OnEnemyDie(AVSEnemy* Enemy, AActor* Causer)
 		DropManager->SpawnDrop(Enemy->GetActorLocation(), DropTable);
 	}
 
-	
+	ReturnEnemiesToPool(Enemy);
 
 }
 
@@ -150,7 +150,7 @@ void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
 		if (DistanceSq <= AttackRadiusSq)
 		{
 			Enemy->SetVisualSpeed(0.f);
-			//TODO:对玩家造成伤害
+			Enemy->AttackPlayer(Player, DeltaTime);
 		}
 		else
 		{

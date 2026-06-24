@@ -64,15 +64,18 @@ void AVSBibleActor::ActivateWeapon(const FVSWeaponInitParams& InitParams, AActor
 		WeaponEffect->Activate(true);
 	}
 
-	// STEP: 在场时长 = Duration，到点交给基类 OnLifetimeEnd 回池（无 Duration 时给 3s 兜底）
-	const float Duration = InitParams.Duration > 0.f ? InitParams.Duration : 3.f;
 	GetWorldTimerManager().ClearTimer(LifetimeTimerHandle);
-	GetWorldTimerManager().SetTimer(
-		LifetimeTimerHandle,
-		this,
-		&AVSBibleActor::OnLifetimeEnd,
-		Duration,
-		false);
+	
+	// STEP: Duration > 0 → 到点回池；Duration <= 0 → 永久常驻（渎神祷书），不设生命周期定时器
+	if (InitParams.Duration > 0.f)
+	{
+		GetWorldTimerManager().SetTimer(
+			LifetimeTimerHandle,
+			this,
+			&AVSBibleActor::OnLifetimeEnd,
+			InitParams.Duration,
+			false);
+	}
 }
 
 void AVSBibleActor::DeactivateWeapon()
@@ -81,7 +84,7 @@ void AVSBibleActor::DeactivateWeapon()
 	CurrentAngleDeg = 0.f;
 	Radius = 0.f;
 	AngularSpeedDegPerSec = 0.f;
-
+	
 	// 交给基类完成隐藏、关碰撞、清定时器等通用回收
 	Super::DeactivateWeapon();
 }

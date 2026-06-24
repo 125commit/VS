@@ -49,5 +49,5 @@ float UVSAbility_Bible::GetNextFireDelay(const FVSAbilityRuntimeStats& Stats) co
 	// NOTE: 下一轮延后到"在场 Duration + 空窗 Cooldown"之后
 	//       这样上一轮的书必定已全部回池，空窗期场上 0 本，同时在场数恒等于 ProjectileCount，
 	//       从结构上消除"按周期生成"与"按寿命回收"两个独立定时器导致的叠加问题
-	return Stats.bNoCooldown ? 0.f : (Stats.Duration + Stats.Cooldown);
+	return Stats.Duration + Stats.Cooldown;
 }

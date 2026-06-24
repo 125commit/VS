@@ -91,10 +91,6 @@ struct FVSAbilityRuntimeStats
 	// NOTE: 运行时穿透数，来源为表值；进化无限穿透时由 ComputeAbilityStats 置为 -1
 	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
 	int32 PierceCount = 0;
-	
-	// 进化：无 CD 连发
-	UPROPERTY(BlueprintReadOnly, Category = "WeaponStats")
-	bool bNoCooldown = false;
 };
 
 // ==========================================================
@@ -141,9 +137,6 @@ struct FVSEvolvedWeaponStatsRow : public FTableRowBase
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
 	float SpeedMultiplier = 1.f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EvolutionStats")
-	bool bNoCooldown = false;
 };
 
 // ==========================================================
@@ -232,9 +225,7 @@ public:
 	FVSAbilityRuntimeStats ComputeAbilityStats(
 		const FGameplayTag& AbilityTag,
 		int32 AbilityLevel,
-		const UAbilitySystemComponent* ASC,
-		bool bEvolvedNoCooldown = false,
-		bool bEvolvedInfinitePierce = false) const;
+		const UAbilitySystemComponent* ASC) const;
 	
 	// 进化核心：预测某个即将获得的技能是否会触发进化反应
 	// 返回值：如果有进化，返回对应的进化版技能 Tag，否则返回一个无效 Tag

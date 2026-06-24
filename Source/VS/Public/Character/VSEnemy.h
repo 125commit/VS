@@ -7,6 +7,7 @@
 #include "VSEnemy.generated.h"
 
 class UDataTable;
+class UGameplayEffect;
 
 /**
  * 
@@ -35,8 +36,12 @@ public:
 	//从池中取出使用前，先重置状态
 	void ResetForSpawn();
 	
+	// 接受玩家攻击
 	virtual float TakeDamage(float Damage, const FDamageEvent& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
+	
+	// EnemyManager 在攻击范围内每帧调用，对玩家造成伤害
+	void AttackPlayer(AActor* PlayerActor, float DeltaTime);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	float VisualSpeed = 200.f;
@@ -68,9 +73,24 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attributes")
 	bool bIsElite = false;
 
+	// 每次接触造成的伤害（每个敌人 BP 各自配置 → 天然“按类型不同”）
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	float AttackDamage = 5.f;
+	
+	// 两次攻击最小间隔，避免每帧扣血
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	float AttackInterval = 1.f;
+	
+	// 接触伤害用的 GE（指向 GE_EnemyDamage）
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
+
 private:
 	bool bIsDead = false;
 	void RefreshDefaultMaxHealth();
+	
+	// 距离上一次攻击的时间
+	float TimeSinceLastAttack = 0.f;
 
 	
 };

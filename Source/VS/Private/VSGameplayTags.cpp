@@ -109,6 +109,10 @@ void FVSGameplayTags::InitializeNativeGameplayTags()
 		FName("Data.Passive.Magnitude"), 
 		FString("被动 SetByCaller 数值通道"));
 	
+	GameplayTags.Data_Damage = Manager.AddNativeGameplayTag(
+		FName("Data.Damage"), 
+		FString("敌人对玩家造成的伤害值"));
+	
 	GameplayTags.Ability_Upgrade = Manager.AddNativeGameplayTag(
 		FName("Ability.Upgrade"), 
 		FString("升级标签"));

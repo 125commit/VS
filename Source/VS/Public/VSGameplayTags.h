@@ -48,6 +48,8 @@ public:
 	
 	FGameplayTag Ability_Upgrade;
 	
+	FGameplayTag Data_Damage;
+	
 protected:
 	static FVSGameplayTags GameplayTags;
 };

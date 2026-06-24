@@ -28,7 +28,7 @@ void UVS_WeaponAbility::OnWeaponFire()
 	if (!GetAvatarActorFromActorInfo() || !GlobalAbilityInfoData) return;
 	
 	FVSAbilityRuntimeStats Stats =  GlobalAbilityInfoData->ComputeAbilityStats(AbilityTag, GetAbilityLevel(),
-		GetAbilitySystemComponentFromActorInfo(),false,false);
+		GetAbilitySystemComponentFromActorInfo());
 	
 	// Start fire
 	ExecuteFire(Stats);
@@ -44,8 +44,8 @@ void UVS_WeaponAbility::OnWeaponFire()
 
 float UVS_WeaponAbility::GetNextFireDelay(const FVSAbilityRuntimeStats& Stats) const
 {
-	// 默认节奏：发射/周期间隔 = Cooldown（进化无冷却时为 0），保持其它武器原有行为不变
-	return Stats.bNoCooldown ? 0.f : Stats.Cooldown;
+	// 默认节奏：发射/周期间隔 = Cooldown（进化无冷却时为 0.xx），保持其它武器原有行为不变
+	return Stats.Cooldown;
 }
 
 void UVS_WeaponAbility::ExecuteFire(const FVSAbilityRuntimeStats& Stats)
