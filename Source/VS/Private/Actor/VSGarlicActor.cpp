@@ -22,7 +22,12 @@ void AVSGarlicActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 	// 不调用 Super：避免 SetLifeSpan(Duration) 和父类默认值
 	WeaponDamage = InitParams.Damage;
 	SetActorScale3D(FVector(InitParams.Area));
-
+	
+	// 大蒜不调 Super，自行缓存击退数据
+	KnockbackForce    = InitParams.KnockbackForce;
+	KnockbackDuration = InitParams.KnockbackDuration;
+	HitInterval       = InitParams.HitInterval;
+	WeaponTag         = InitParams.WeaponTag;
 }
 
 void AVSGarlicActor::BeginPlay()
@@ -98,13 +103,19 @@ void AVSGarlicActor::ApplyPeriodicDamageInCircle(const FVSWeaponInitParams& Init
 	
 	WeaponDamage = InitParams.Damage;
 	
+	// 新增：每个 Cooldown 刷新击退/ICD（让击退随当前伤害同步增长）
+	KnockbackForce    = InitParams.KnockbackForce;
+	KnockbackDuration = InitParams.KnockbackDuration;
+	HitInterval       = InitParams.HitInterval;
+	WeaponTag         = InitParams.WeaponTag;
+	
 	// SetActorScale3D 会让已重叠的敌人再次触发 OnComponentBeginOverlap
 	/** 所以需要 bCloseOverlapDamage 屏蔽 OnBeginOverlap 函数中的伤害，用当前函数来“补”伤害 **/
 	bCloseOverlapDamage = true;
 	SetActorScale3D(FVector(InitParams.Area));
 	bCloseOverlapDamage = false;
 
-	//Apply PassiveEffect & Dmaage
+	//Apply PassiveEffect & Damage
 	if (!SphereCollision) return;
 	
 	TArray<AActor*> OverlappingActors;
@@ -112,19 +123,21 @@ void AVSGarlicActor::ApplyPeriodicDamageInCircle(const FVSWeaponInitParams& Init
 	
 	for (AActor* Actor : OverlappingActors)
 	{
-		if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
+		AVSEnemy* Enemy = Cast<AVSEnemy>(Actor);
+		if (Enemy && !Enemy->IsDead())
 		{
-			ApplyGarlicPassiveEffects(Enemy);
+			if (!Enemy->CanBeHitByWeapon(WeaponTag, HitInterval)) continue;
+			//先破甲
+			ApplyGarlicPassiveEffects(Enemy);  
 			
-			UGameplayStatics::ApplyDamage(
-				Enemy,
-				WeaponDamage,
-				GetInstigatorController(),
-				this,
-				UDamageType::StaticClass());
+			//伤害
+			UGameplayStatics::ApplyDamage(Enemy, WeaponDamage, GetInstigatorController(), this, UDamageType::StaticClass());
 			
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, 
-	FString::Printf(TEXT("Garlic Apply Damage: [%f]"), WeaponDamage));
+			// 击退（读到破甲后的有效抗性）
+			if (KnockbackForce > 0.f)          
+			{
+				Enemy->ApplyKnockback(GetActorLocation(), KnockbackForce, KnockbackDuration);
+			}
 		}
 	}
 	
@@ -140,10 +153,12 @@ void AVSGarlicActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
 	if (!Enemy || Enemy->IsDead() || WeaponDamage <= 0.f) return;
 	
-	//TODO:设置被动
+	if (!Enemy->CanBeHitByWeapon(WeaponTag, HitInterval)) return;
+	
+	//先破甲
 	ApplyGarlicPassiveEffects(Enemy);
 	
-	//一发生重叠就造成伤害
+	//伤害
 	UGameplayStatics::ApplyDamage(
 		Enemy,
 		WeaponDamage,
@@ -151,12 +166,21 @@ void AVSGarlicActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AA
 		this,
 		UDamageType::StaticClass());
 	
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, 
-		FString::Printf(TEXT("Garlic Apply Damage: [%f]"), WeaponDamage));
+	//击退
+	if (KnockbackDuration > 0.f)
+	{
+		Enemy->ApplyKnockback(GetActorLocation(), KnockbackForce, KnockbackDuration);
+	}
 }
 
 
 void AVSGarlicActor::ApplyGarlicPassiveEffects(AVSEnemy* Enemy)
 {
-	//TODO:
+	if (!Enemy) return;
+	
+	// 临时降低该敌人击退抗性
+	if (KnockbackResistanceReduction > 0.f)
+	{
+		Enemy->ApplyKnockbackResistanceReduction(KnockbackResistanceReduction, ResistanceReductionDuration);
+	}
 }

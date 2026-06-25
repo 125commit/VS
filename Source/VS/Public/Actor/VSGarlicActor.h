@@ -39,5 +39,12 @@ protected:
 	float BaseSphereRadius = 150.f;
 	
 	bool bCloseOverlapDamage = false;
+	
+	// 仅大蒜：命中时削减敌人击退抗性的量(0~1) 与 持续时间(秒)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Garlic|Knockback")
+	float KnockbackResistanceReduction = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Garlic|Knockback")
+	float ResistanceReductionDuration = 0.7f;
 };
 
