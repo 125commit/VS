@@ -30,6 +30,12 @@ void AVSBibleActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 
 	// 转速 = 基准转速 × 该级速度倍率（表里 SpeedMultiplier 填 1.3 即 +30% 转速）
 	AngularSpeedDegPerSec = BaseAngularSpeedDegPerSec * FMath::Max(0.f, InitParams.SpeedMultiplier);
+	
+	//因为圣经不调 Super，需自行缓存击退数据
+	KnockbackForce    = InitParams.KnockbackForce;
+	KnockbackDuration = InitParams.KnockbackDuration;
+	HitInterval       = InitParams.HitInterval;
+	WeaponTag         = InitParams.WeaponTag;
 }
 
 void AVSBibleActor::ActivateWeapon(const FVSWeaponInitParams& InitParams, AActor* InOwner, APawn* InInstigator)

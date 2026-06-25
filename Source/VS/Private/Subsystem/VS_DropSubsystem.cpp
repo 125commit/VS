@@ -100,6 +100,7 @@ void UVS_DropSubsystem::SpawnDrop(const FVector& Location, const UDataTable* Dro
 	if (!bFound) return;
 
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("Drop Item"));
+	
 	const FVSDropTypeDefinition DropTypeDefinition = DropSettings->FindDefinition(SelectedEntry.DropType);
 	const TSubclassOf<AVS_DropItemActor> DropClass = DropTypeDefinition.DropActorClass;
 	if (DropClass == nullptr) return;

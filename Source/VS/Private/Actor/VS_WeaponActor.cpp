@@ -124,6 +124,11 @@ void AVS_WeaponActor::InitFromParams(const FVSWeaponInitParams& InitParams)
 	{
 		SetLifeSpan(0.15f);
 	}
+	
+	KnockbackForce    = InitParams.KnockbackForce;
+	KnockbackDuration = InitParams.KnockbackDuration;
+	HitInterval       = InitParams.HitInterval;
+	WeaponTag         = InitParams.WeaponTag;
 }
 
 
@@ -136,6 +141,9 @@ void AVS_WeaponActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, A
 	AVSEnemy* Enemy = Cast<AVSEnemy>(OtherActor);
 	if (!Enemy || Enemy->IsDead() || WeaponDamage < 0.f) return;
 	
+	// 新增：ICD 门控（冷却内整段跳过）
+	if (!Enemy->CanBeHitByWeapon(WeaponTag, HitInterval)) return;
+	
 	UGameplayStatics::ApplyDamage(
 		Enemy,
 		WeaponDamage,
@@ -143,4 +151,10 @@ void AVS_WeaponActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, A
 		this,
 		UDamageType::StaticClass()
 	);
+	
+	//击退敌人
+	if (KnockbackForce > 0.f)
+	{
+		Enemy->ApplyKnockback(GetActorLocation(), KnockbackForce, KnockbackDuration);
+	}
 }
