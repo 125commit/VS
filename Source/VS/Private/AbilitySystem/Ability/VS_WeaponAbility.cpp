@@ -109,6 +109,12 @@ FVSWeaponInitParams UVS_WeaponAbility::MakeBaseWeaponParams(const FVSAbilityRunt
 
 	// NOTE: 穿透数原样下发（含 -1 无限穿透语义），由投射物 Actor 自行判断回收时机
 	Params.PierceCount = Stats.PierceCount;
+	
+	// 击退随最终伤害缩放（伤害越高，击退越强）
+	Params.KnockbackForce    = KnockbackBaseForce + Params.Damage * KnockbackPerDamage;
+	Params.KnockbackDuration = KnockbackDuration;
+	Params.HitInterval       = HitInterval;
+	Params.WeaponTag         = AbilityTag;
 
 	return Params;
 }

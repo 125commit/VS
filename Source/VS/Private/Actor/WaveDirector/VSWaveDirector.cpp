@@ -99,33 +99,35 @@ void AVSWaveDirector::ProcessSpawn()
 int32 AVSWaveDirector::TrySpawnEnemiesWave(const FWaveSpawnConfig& Wave, UVSEnemyManager* EnemyManager, int32 CurrentCount,
 	int32 MaxCount, bool bSpawnAsElite)
 {
-	int32 AvailableCount = FMath::Max(0, MaxCount - CurrentCount);
+	const int32 AvailableCount = FMath::Max(0, MaxCount - CurrentCount);
 	if (AvailableCount <= 0 ) return 0;
 	
+	//需要生成的敌人
 	const int32 NeedToSpawn = FMath::Min(FMath::Max(Wave.EnemyNumPerWave, 1),AvailableCount);
 	
-	TSubclassOf<AVSEnemy> EnemyClassToSpawn = nullptr;
-	if (WaveConfig && WaveConfig->EnemyDictionary)
+	// 从字典取该 EnemyType 的完整定义
+	FVSEnemyDefinition Def;
+	
+	// ———— GetEnemyDefinition 的第二个参数是引用传递，所以在函数内部已经把 Def 设置好了 —————
+	if (!WaveConfig || !WaveConfig->EnemyDictionary || 
+		!WaveConfig->EnemyDictionary->GetEnemyDefinition(Wave.EnemyType, Def) || !Def.EnemyClass)
 	{
-		EnemyClassToSpawn = WaveConfig->EnemyDictionary->GetEnemyClass(Wave.EnemyType);
+		return 0;
 	}
 	
-	if (!EnemyClassToSpawn) return 0;
-	
+	//开始循环 Spawn
 	int32 SpawnCount = 0;
-	for (int32 i = 0; i < NeedToSpawn; ++ i)
+	for (int32 i = 0; i < NeedToSpawn; ++i)
 	{
 		const FVector SpawnLocation = GetEnemyRandomSpawnLocation();
-		if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(EnemyClassToSpawn, SpawnLocation))
+		if (AActor* Actor = EnemyManager->SpawnEnemiesFromPool(Def.EnemyClass, SpawnLocation))
 		{
 			if (AVSEnemy* Enemy = Cast<AVSEnemy>(Actor))
 			{
-				if (bSpawnAsElite)
-				{
-					Enemy->SetIsElite(true);
-				}
+				// 一次性灌注全部数据（含精英派生）
+				Enemy->ApplyDefinition(Def, bSpawnAsElite);
 			}
-			++ SpawnCount;
+			++SpawnCount;
 		}
 	}
 	return SpawnCount;

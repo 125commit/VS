@@ -5,11 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Data/VSProjectileType.h"
+#include "GameplayTagContainer.h"
 #include "VS_WeaponActor.generated.h"
 
 class USphereComponent;
 class UNiagaraComponent;
 class AVSEnemy;
+
 
 
 /** Ability 传给 Actor 的运行时参数包 */
@@ -50,9 +52,24 @@ struct FVSWeaponInitParams
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	FVector FlightDirection = FVector::ForwardVector;
 	
-	
 	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
 	TWeakObjectPtr<AVSEnemy> TargetEnemy;
+
+	// 击退力度(cm/s)：由 Ability 按最终伤害预先算好后下发；0 = 不击退
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	float KnockbackForce = 0.f;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	float KnockbackDuration = 0.15f;
+	
+	// ICD：同一武器再次命中同一敌人的最小间隔(秒)
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	float HitInterval = 0.2f;
+	
+	// 武器身份（= Ability 的 AbilityTag），用作 ICD 分组键
+	UPROPERTY(BlueprintReadOnly, Category = "VS|Weapon")
+	FGameplayTag WeaponTag;
+
 };
 
 
@@ -92,5 +109,11 @@ protected:
 	
 	
 	float WeaponDamage = 0.f;
+	
+	// ———— 击退————
+	float KnockbackForce = 0.f;
+	float KnockbackDuration = 0.15f;
+	float HitInterval = 0.2f;
+	FGameplayTag WeaponTag;
 
 };

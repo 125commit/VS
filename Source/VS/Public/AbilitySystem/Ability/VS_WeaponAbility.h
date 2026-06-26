@@ -43,6 +43,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Weapon")
 	TObjectPtr<class UVSAbilityInfoData> GlobalAbilityInfoData;
 
+	// ── 击退配置（每把武器在 GA 蓝图配置）──
+		// 击退系数：每 1 点最终伤害产生多少 cm/s 击退初速度。0 = 该武器不击退
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Knockback")
+	float KnockbackPerDamage = 0.f;
+	
+		// 固定底力：保证低伤害也有最低击退（可为 0）
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Knockback")
+	float KnockbackBaseForce = 0.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Knockback")
+	float KnockbackDuration = 0.15f;
+	
+		// 同一武器再次命中同一敌人的最小间隔(秒)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VS|Knockback")
+	float HitInterval = 0.2f;
+	
 	// -------------------------------------------------------------
 	// 循环与结算逻辑
 	// -------------------------------------------------------------

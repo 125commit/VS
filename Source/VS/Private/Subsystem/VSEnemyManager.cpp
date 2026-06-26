@@ -57,12 +57,7 @@ AActor* UVSEnemyManager::SpawnEnemiesFromPool(TSubclassOf<AActor> EnemyClass, co
 	AActor* NewEnemy = EnemyPool->GetActorFromPool(GetWorld(), EnemyClass, Location, FRotator::ZeroRotator);
 	if (!NewEnemy || ActiveEnemies.Contains(NewEnemy)) return NewEnemy;
 
-	if (AVSEnemy* VSEnemy = Cast<AVSEnemy>(NewEnemy))
-	{
-		VSEnemy->ResetForSpawn();
-		ActiveEnemies.Add(NewEnemy);
-	}
-
+	ActiveEnemies.Add(NewEnemy);
 	return NewEnemy;
 }
 
@@ -138,15 +133,21 @@ void UVSEnemyManager::ProcessEnemyLogic(float DeltaTime)
 
 	const FVector PlayerLoc = Player->GetActorLocation();
 
-	//避免遍历时把敌人放回池中(死亡)，所以先创建一个本地副�?
+	//避免遍历时把敌人放回池中(死亡)，所以先创建一个本地副本
 	const TArray<AActor*> EnemiesSnapshot = ActiveEnemies;
 	for (AActor* EnemyActor : EnemiesSnapshot)
 	{
 		AVSEnemy* Enemy = Cast<AVSEnemy>(EnemyActor);
 		if (!Enemy || Enemy->IsDead()) continue;
 
+		// 先处理击退
+		if (Enemy->TickKnockback(DeltaTime))
+		{
+			continue;
+		}
+		
+		//再处理移动
 		const float DistanceSq = FVector::DistSquared(PlayerLoc, Enemy->GetActorLocation());
-
 		if (DistanceSq <= AttackRadiusSq)
 		{
 			Enemy->SetVisualSpeed(0.f);
