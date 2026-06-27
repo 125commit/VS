@@ -33,8 +33,8 @@ struct FCharacterClassDefaultInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Class Defaults")
 	TObjectPtr<USkeletalMesh> CharacterMesh;
 
-	// 2. 出生自带的初始武器/被动技能
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Class Defaults")
+	// NOTE: EditAnywhere 便于编辑器脚本批量写入各角色初始武器
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Class Defaults")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 	// 3. 初始属性加成 (使用 GameplayEffect 承载，如：Antonio 血量上限+20，护甲+1)

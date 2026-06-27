@@ -9,7 +9,7 @@ class AVSEnemy;
 class UGameplayEffect;
 class UDataTable;
 
-/** DataTable 行：策划用 Excel/CSV 配置的纯数值（RowName 用 EVSEnemyType 名字：Goblin/Slime/Bat/Boss/None） */
+/** DataTable 行：策划用 Excel/CSV 配置的纯数值（RowName 用 EVSEnemyType 名字：Goblin/Slime/Bat/Boss/Ghost） */
 USTRUCT(BlueprintType)
 struct FVSEnemyStatRow : public FTableRowBase
 {
