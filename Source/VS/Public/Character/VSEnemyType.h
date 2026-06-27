@@ -6,7 +6,8 @@
 UENUM(BlueprintType)
 enum class EVSEnemyType : uint8
 {
-	None UMETA(DisplayName = "Ghost"),
+	None UMETA(DisplayName = "None"),
+	Ghost UMETA(DisplayName = "Ghost"),
 	Goblin UMETA(DisplayName = "Goblin"),
 	Slime UMETA(DisplayName = "Slime"),
 	Bat UMETA(DisplayName = "Bat"),
