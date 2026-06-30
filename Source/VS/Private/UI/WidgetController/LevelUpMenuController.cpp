@@ -86,9 +86,9 @@ FVSLevelUpCardInfo ULevelUpMenuController::BuildCardInfo(const FVSAbilityInfo& I
 	// 预测是否触发进化
 	if (AVS_PlayerController* VSPC = GetVSPC())
 	{
-		if (VSPC->AbilityInfoData)
+		if (VSPC->AbilityInfoData && InAbilityInfo.MaxLevel > 0 && CardInfo.CurrentLevel >= InAbilityInfo.MaxLevel)
 		{
-			FGameplayTag EvolvedTag = VSPC->AbilityInfoData->CheckIfCausesEvolution(InAbilityInfo.AbilityTag, CardInfo.NextLevel, GetVSASC());
+			FGameplayTag EvolvedTag = VSPC->AbilityInfoData->CheckIfCausesEvolution(InAbilityInfo.AbilityTag, CardInfo.CurrentLevel, GetVSASC());
 			if (EvolvedTag.IsValid())
 			{
 				CardInfo.bWillCauseEvolution = true;
